@@ -1,7 +1,7 @@
 from flask import Flask, jsonify
 import random
 
-app = Flask(_name_)
+app = Flask(__name__)
 
 BASE_URL = "https://example.com/articles"
 
@@ -20,10 +20,10 @@ def generate_result():
 
 @app.route('/search/<query>', methods=['GET'])
 def search(query):
-    results = [generate_result() for _ in range(10)]
+    results = [generate_result() for _ in range(100)]
     random.shuffle(results)
     return jsonify(results)
 
 
-if _name_ == '_main_':
+if __name__ == '__main__':
     app.run(debug=True)
