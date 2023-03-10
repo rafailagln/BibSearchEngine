@@ -2,9 +2,13 @@ from Preprocessor.DataCleaner import DataCleaner
 import DataReader
 from Indexer.IndexValueInfo import InfoClass
 
-mongoConnection = DataReader.Reader('mongodb://localhost:27017')
+mongoConnection = DataReader.Reader('mongodb://m151User:YyKOhV1xa3mnmlFP@vmi1224404.contaboserver.net:27017/?authMechanism=DEFAULT&authSource=M151')
 collection = mongoConnection.getCollection("M151", "Papers")
 results = mongoConnection.readCollection(collection)
+
+# presults = list(results)
+# for result in presults:
+#     print(result)
 
 index_dictionary = dict()
 cleaner = DataCleaner()

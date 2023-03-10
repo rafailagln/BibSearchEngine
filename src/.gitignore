@@ -3,12 +3,15 @@
 **/__pycache__/
 **/*.py[cod]
 **/*$py.class
+back1/
+SearchEngine/
 
 #  C extensions
 **/*.so
 
 #  Distribution / packaging
 **/.Python
+**/.DS_Store
 **/env/
 **/build/
 **/develop-eggs/
@@ -163,4 +166,4 @@
 **/.idea/caches/build_file_checksums.ser
 
 #  idea folder, uncomment if you don't need it
-#  .idea
+back/.idea
