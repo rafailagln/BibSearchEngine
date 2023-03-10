@@ -15,8 +15,8 @@ class Reader:
 
     @staticmethod
     def readCollection(collection):
-        return collection.find({}, {"title": 1, "abstract": 1})
+        return collection.find({}, {"_id": 1, "title": 1, "abstract": 1})
 
     @staticmethod
     def readLimitedCollection(collection, limit):
-        return collection.find({}, {"title": 1, "abstract": 1}).limit(limit)
+        return collection.find({}, {"_id": 1, "title": 1, "abstract": 1}).limit(limit)
