@@ -6,3 +6,9 @@ class InfoClass:
         self._position = position
         self._docid = docid
 
+    def __json__(self):
+        return {
+            'type': self._type,
+            'position': self._position,
+            'docid': self._docid
+        }
