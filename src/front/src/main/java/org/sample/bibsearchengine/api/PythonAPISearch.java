@@ -15,14 +15,14 @@ import java.util.List;
 
 public class PythonAPISearch {
 
-    private static final String PYTHON_API_URL = "http://localhost:5000/search/";
+    private static final String PYTHON_API_URL = "http://127.0.0.1:5000/search/";
 
     public static List<SearchResult> search(String query) {
 
         HttpClient client = HttpClient.newHttpClient();
 
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(PYTHON_API_URL + query))
+                .uri(URI.create(PYTHON_API_URL + query.replaceAll(" ", "%20")))
                 .GET()
                 .build();
 
@@ -55,11 +55,15 @@ public class PythonAPISearch {
         List<SearchResult> results = new ArrayList<>();
         // Loop through the array of JSON objects and extract the values
         for (JsonNode articleNode : jsonNode) {
-            String title = articleNode.get("title").asText();
-            String snippet = articleNode.get("snippet").asText();
-            String url = articleNode.get("url").asText();
+            String title = articleNode.get("title").get(0).asText();
+            String snippet = "";
+            if (articleNode.has("abstract")) {
+                snippet = articleNode.get("abstract").asText();
+            }
+            String url = articleNode.get("URL").asText();
             results.add(new SearchResult(title, url, snippet));
         }
         return results;
     }
+
 }
