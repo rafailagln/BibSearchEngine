@@ -11,6 +11,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class PythonAPISearch {
@@ -56,14 +57,31 @@ public class PythonAPISearch {
         // Loop through the array of JSON objects and extract the values
         for (JsonNode articleNode : jsonNode) {
             String title = articleNode.get("title").get(0).asText();
-            String snippet = "";
-            if (articleNode.has("abstract")) {
-                snippet = articleNode.get("abstract").asText();
+            // Display only the first 10 words of the title
+            if(title.split("\\s+").length > 10) {
+                title = String.join(" ", Arrays.copyOfRange(title.split("\\s+"), 0, 10)) + "...";
+            }
+            JsonNode _abstract = articleNode.get("abstract");
+            String snippet = _abstract != null ? _abstract.asText() : "";
+            if(snippet.split("\\s+").length > 70) {
+                snippet = removeHtmlTags(String.join(" ", Arrays.copyOfRange(snippet.split("\\s+"), 0, 70)) + "...");
             }
             String url = articleNode.get("URL").asText();
             results.add(new SearchResult(title, url, snippet));
         }
         return results;
     }
+
+    public static String removeHtmlTags(String htmlText) {
+        // Regular expression to match HTML tags
+        String regex = "<[^>]*>";
+
+        // Remove all HTML tags
+        String plainText = htmlText.replaceAll(regex, " ");
+
+        return plainText;
+    }
+
+
 
 }
