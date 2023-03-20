@@ -95,9 +95,7 @@ class Rank:
                 for i in range(max(0, query_terms.index(term) - window_size), query_terms.index(term)):
                     prev_term = query_terms[i]
                     prev_postings = self.trie.search(prev_term)
-                    prev_positions = [p[1] for p in prev_postings if
-                                      p[
-                                          0] == doc_id]  # change it to take into consideration the correct order of the words
+                    prev_positions = [p[1] for p in prev_postings if p[0] == doc_id]  # change it to take into consideration the correct order of the words
 
                     if prev_positions:
                         closest_prev_position = min(prev_positions, key=lambda x: abs(x - position))
@@ -109,9 +107,7 @@ class Rank:
                                min(len(query_terms), query_terms.index(term) + window_size + 1)):
                     next_term = query_terms[i]
                     next_postings = self.trie.search(next_term)
-                    next_positions = [p[1] for p in next_postings if
-                                      p[
-                                          0] == doc_id]  # change it to take into consideration the correct order of the words
+                    next_positions = [p[1] for p in next_postings if p[0] == doc_id]  # change it to take into consideration the correct order of the words
 
                     if next_positions:
                         closest_next_position = min(next_positions, key=lambda x: abs(x - position))
@@ -131,8 +127,8 @@ class Rank:
     def final_results(self, user_query):
         start_time = time.time()
 
-        # ids = self._get_scores_sample(user_query)
-        ids = self.rank_documents_proximity_multi_terms(user_query, 2)
+        ids = self._get_scores_sample(user_query)
+        # ids = self.rank_documents_proximity_multi_terms(user_query, 2)
         # ids = self._get_scores_cosine(user_query)
 
         # define the aggregation pipeline
