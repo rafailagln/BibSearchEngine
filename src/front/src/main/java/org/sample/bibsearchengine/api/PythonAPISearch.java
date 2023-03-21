@@ -3,6 +3,8 @@ package org.sample.bibsearchengine.api;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.sample.bibsearchengine.search.SearchResult;
 
 import java.io.IOException;
@@ -59,7 +61,7 @@ public class PythonAPISearch {
             String title = articleNode.get("title").get(0).asText();
             // Display only the first 10 words of the title
             if(title.split("\\s+").length > 10) {
-                title = String.join(" ", Arrays.copyOfRange(title.split("\\s+"), 0, 10)) + "...";
+                title = removeHtmlTags(String.join(" ", Arrays.copyOfRange(title.split("\\s+"), 0, 10))) + "...";
             }
             JsonNode _abstract = articleNode.get("abstract");
             String snippet = _abstract != null ? _abstract.asText() : "";
@@ -72,16 +74,21 @@ public class PythonAPISearch {
         return results;
     }
 
+//    public static String removeHtmlTags(String htmlText) {
+//        // Regular expression to match HTML tags
+//        String regex = "<.*?>";
+//        String regex2 = "&lt;.*?&gt;";
+//
+//        // Remove all HTML tags
+//        String plainText = htmlText
+//                .replaceAll(regex, "")
+//                .replaceAll(regex2, "");
+//        return plainText;
+//    }
     public static String removeHtmlTags(String htmlText) {
-        // Regular expression to match HTML tags
-        String regex = "<[^>]*>";
-
-        // Remove all HTML tags
-        String plainText = htmlText.replaceAll(regex, " ");
-
-        return plainText;
+        // Parse the HTML string into a Jsoup Document object
+        Document doc = Jsoup.parse(htmlText);
+        // Use the text() method to retrieve the plain text without HTML tags
+        return doc.text();
     }
-
-
-
 }
