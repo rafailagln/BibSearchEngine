@@ -2,7 +2,7 @@ from Preprocessor.DataCleaner import DataCleaner
 from Basics.connection2 import MongoDBConnection
 import logging
 
-from Trie1.Trie import TrieIndex
+from Indexer.Trie import TrieIndex
 
 TITLE = 0
 ABSTRACT = 1
@@ -11,10 +11,10 @@ cleaner = DataCleaner()
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
-def node_adder(_id, _value, _counter, _index_dictionary, type):
+def node_adder(_id, _value, _counter, _index_dictionary, _type):
     cleaned_words = cleaner.cleanData(_value)
     for word in cleaned_words:
-        _index_dictionary.insert(word, (_id, _counter, type))
+        _index_dictionary.insert(word, (_id, _counter, _type))
         _counter += 1
     return _counter, _index_dictionary
 

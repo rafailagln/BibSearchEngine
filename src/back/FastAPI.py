@@ -5,8 +5,8 @@ from fastapi import FastAPI
 from typing import List
 from random import randint
 import uvicorn
-from Ranker.Rank import Rank
-
+from Ranker.Rank_old import Rank
+from Ranker.Rank import SearchEngine
 
 start_time = time.time()
 
@@ -14,7 +14,8 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %
 
 app = FastAPI()
 BASE_URL = "https://example.com/articles"
-rank = Rank()
+# rank = Rank()
+engine = SearchEngine()
 end_time = time.time()
 time_diff = end_time - start_time
 logging.info(f"Time to start API: {time_diff} seconds")
@@ -38,7 +39,8 @@ def generate_result():
 def search(query: str):
     # results = [generate_result() for _ in range(100)]
     # shuffle(results)
-    return rank.final_results(query)
+    # return rank.final_results(query)
+    return engine.final_results(query)
 
 
 if __name__ == "__main__":
