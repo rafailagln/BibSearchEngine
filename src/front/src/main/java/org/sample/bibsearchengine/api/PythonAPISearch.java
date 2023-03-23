@@ -58,15 +58,15 @@ public class PythonAPISearch {
         List<SearchResult> results = new ArrayList<>();
         // Loop through the array of JSON objects and extract the values
         for (JsonNode articleNode : jsonNode) {
-            String title = articleNode.get("title").get(0).asText();
+            String title = articleNode.get("title").asText();
             // Display only the first 10 words of the title
             if(title.split("\\s+").length > 10) {
-                title = removeHtmlTags(String.join(" ", Arrays.copyOfRange(title.split("\\s+"), 0, 10))) + "...";
+                title = parseHTML(String.join(" ", Arrays.copyOfRange(title.split("\\s+"), 0, 10))) + "...";
             }
             JsonNode _abstract = articleNode.get("abstract");
             String snippet = _abstract != null ? _abstract.asText() : "";
             if(snippet.split("\\s+").length > 70) {
-                snippet = removeHtmlTags(String.join(" ", Arrays.copyOfRange(snippet.split("\\s+"), 0, 70)) + "...");
+                snippet = parseHTML(String.join(" ", Arrays.copyOfRange(snippet.split("\\s+"), 0, 70)) + "...");
             }
             String url = articleNode.get("URL").asText();
             results.add(new SearchResult(title, url, snippet));
@@ -85,7 +85,7 @@ public class PythonAPISearch {
 //                .replaceAll(regex2, "");
 //        return plainText;
 //    }
-    public static String removeHtmlTags(String htmlText) {
+    public static String parseHTML(String htmlText) {
         // Parse the HTML string into a Jsoup Document object
         Document doc = Jsoup.parse(htmlText);
         // Use the text() method to retrieve the plain text without HTML tags

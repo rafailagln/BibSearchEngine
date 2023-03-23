@@ -11,45 +11,36 @@ cleaner = DataCleaner()
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
-def node_adder(_id, _value, _counter, _index_dictionary, _type):
-    cleaned_words = cleaner.cleanData(_value)
-    for word in cleaned_words:
-        _index_dictionary.insert(word, (_id, _counter, _type))
-        _counter += 1
-    return _counter, _index_dictionary
+
 
 
 class IndexCreator:
-    def __init__(self, db_name='M151', index_collection='Index', data_collection='Papers'):
+    def __init__(self, db, db_name='M151', index_collection='Index'):
         self.db_name = db_name
         self.index_collection = index_collection
-        self.data_collection = data_collection
         self.index_dictionary = TrieIndex()
+        self.db = db
 
     def create_index(self):
         with MongoDBConnection() as conn:
             mongo = conn.get_connection()
             index_collection = mongo.get_database(self.db_name).get_collection(self.index_collection)
-            data_collection = mongo.get_database(self.db_name).get_collection(self.data_collection)
+            docs = self.db.get_all_documents()
             if index_collection.count_documents({}) == 0:
                 # Index collection is empty, create index and save to collection
                 logging.info("Creating index...")
-                data = data_collection.find({}, {"_id": 1, "title": 1, "abstract": 1})
-                est_total_size = data_collection.estimated_document_count()
+                est_total_size = self.db.doc_id - 1
                 count = 0
                 progress_threshold = 5000
-                for doc in data:
-                    doc_id = doc["_id"]
-                    for field, value in doc.items():
-                        counter = 1
-                        if field == "title":
-                            counter, self.index_dictionary = node_adder(doc_id, value[0], counter,
-                                                                        self.index_dictionary,
-                                                                        TITLE)
-                        elif field == "abstract":
-                            counter, self.index_dictionary = node_adder(doc_id, value, counter, self.index_dictionary,
-                                                                        ABSTRACT)
-                    count += 1
+                for doc in docs:
+                    doc_id = doc['doc_id']
+                    if doc['title'] != ' ':
+                        self.node_adder(doc_id, doc['title'], TITLE)
+                        count += 1
+                    if doc['abstract'] != ' ':
+                        self.node_adder(doc_id, doc['abstract'], ABSTRACT)
+                        count += 1
+
                     if count % progress_threshold == 0:
                         print(f'Created {count}/{est_total_size} docs ({count / est_total_size:.2%})')
                 logging.info("Created index.\n")
@@ -60,3 +51,10 @@ class IndexCreator:
                 # Index exists, load index from db
                 logging.info("Loading index...")
                 self.index_dictionary.load(index_collection)
+
+    def node_adder(self, _id, _value, _type):
+        _counter = 1
+        cleaned_words = cleaner.cleanData(_value)
+        for word in cleaned_words:
+            self.index_dictionary.insert(word, (_id, _counter, _type))
+            _counter += 1
