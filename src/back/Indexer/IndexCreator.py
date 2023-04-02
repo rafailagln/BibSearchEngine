@@ -1,3 +1,4 @@
+from Indexer.IndexMetadata import Metadata
 from Preprocessor.DataCleaner import DataCleaner
 from Basics.connection2 import MongoDBConnection
 import logging
@@ -11,52 +12,55 @@ cleaner = DataCleaner()
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
-def node_adder(_id, _value, _counter, _index_dictionary, _type):
-    cleaned_words = cleaner.cleanData(_value)
-    for word in cleaned_words:
-        _index_dictionary.insert(word, (_id, _counter, _type))
-        _counter += 1
-    return _counter, _index_dictionary
-
-
 class IndexCreator:
-    def __init__(self, db_name='M151', index_collection='Index', data_collection='Papers'):
+    def __init__(self, db, db_name='M151', index_collection='Index'):
         self.db_name = db_name
         self.index_collection = index_collection
-        self.data_collection = data_collection
         self.index_dictionary = TrieIndex()
+        self.db = db
+        self.index_metadata = Metadata()
 
     def create_index(self):
         with MongoDBConnection() as conn:
             mongo = conn.get_connection()
             index_collection = mongo.get_database(self.db_name).get_collection(self.index_collection)
-            data_collection = mongo.get_database(self.db_name).get_collection(self.data_collection)
+            docs = self.db.get_all_documents()
             if index_collection.count_documents({}) == 0:
                 # Index collection is empty, create index and save to collection
                 logging.info("Creating index...")
-                data = data_collection.find({}, {"_id": 1, "title": 1, "abstract": 1})
-                est_total_size = data_collection.estimated_document_count()
+                est_total_size = self.db.doc_id - 1
                 count = 0
                 progress_threshold = 5000
-                for doc in data:
-                    doc_id = doc["_id"]
-                    for field, value in doc.items():
-                        counter = 1
-                        if field == "title":
-                            counter, self.index_dictionary = node_adder(doc_id, value[0], counter,
-                                                                        self.index_dictionary,
-                                                                        TITLE)
-                        elif field == "abstract":
-                            counter, self.index_dictionary = node_adder(doc_id, value, counter, self.index_dictionary,
-                                                                        ABSTRACT)
+                for doc in docs:
+                    self.index_metadata.update_doc_num()
+                    doc_id = doc['doc_id']
+                    if doc['title'] != ' ':
+                        cleaned_words = cleaner.cleanData(doc['title'])
+                        self.node_adder(doc_id, cleaned_words, TITLE)
+                        self.index_metadata.add_doc_length_field(doc_id, len(cleaned_words), field=TITLE)
+                        self.index_metadata.increase_average_length(len(cleaned_words), field=TITLE)
+                    if doc['abstract'] != ' ':
+                        cleaned_words = cleaner.cleanData(doc['abstract'])
+                        self.node_adder(doc_id, cleaned_words, ABSTRACT)
+                        self.index_metadata.add_doc_length_field(doc_id, len(cleaned_words), field=ABSTRACT)
+                        self.index_metadata.increase_average_length(len(cleaned_words), field=ABSTRACT)
                     count += 1
                     if count % progress_threshold == 0:
-                        print(f'Created {count}/{est_total_size} docs ({count / est_total_size:.2%})')
-                logging.info("Created index.\n")
+                        print(f'Created {count}/{est_total_size} docs ({count / est_total_size:.2%})', end="\r", flush=True)
+                logging.info("Created index.")
+                self.index_metadata.calculate_average_length()
                 # Save index to db
                 logging.info("Saving index to db...")
-                self.index_dictionary.save(index_collection)
+                self.index_dictionary.save()
+                self.index_metadata.save()
             else:
                 # Index exists, load index from db
                 logging.info("Loading index...")
-                self.index_dictionary.load(index_collection)
+                self.index_dictionary.load()
+                self.index_metadata.load()
+
+    def node_adder(self, _id, cleaned_words, _type):
+        _counter = 1
+        for word in cleaned_words:
+            self.index_dictionary.insert(word, (_id, _counter, _type))
+            _counter += 1

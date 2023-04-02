@@ -28,15 +28,12 @@ def calculate_proximity(positions_dict):
 
 class SearchEngine:
 
-    def __init__(self, db_name='M151', collection_name='Papers'):
-        self.indexer = IndexCreator()
+    def __init__(self, db):
+        self.indexer = IndexCreator(db)
         self.indexer.create_index()
-        self.db_name = db_name
-        self.collection_name = collection_name
         self.index_dictionary = self.indexer.index_dictionary
-        self.mongo = MongoDBConnection()
-        self.collection = self.mongo.get_connection().get_database(self.db_name).get_collection(self.collection_name)
         self.cleaner = DataCleaner()
+        self.db = db
 
     def search(self, query, max_results=10000):
         start_time = time.time()
@@ -69,35 +66,9 @@ class SearchEngine:
         start_time = time.time()
 
         ids = self.search(user_query)
+        results = self.db.get_titles_abstracts_urls(ids)
 
-        # define the aggregation pipeline
-        pipeline = [
-            {
-                "$match": {
-                    "_id": {"$in": ids}
-                }
-            },
-            {
-                "$addFields": {
-                    "order": {"$indexOfArray": [ids, "$_id"]}
-                }
-            },
-            {
-                "$sort": {
-                    "order": 1
-                }
-            },
-            {
-                "$project": {
-                    "_id": 0,
-                    "title": 1,
-                    "abstract": 1,
-                    "URL": 1
-                }
-            }
-        ]
 
-        results = list(self.collection.aggregate(pipeline))
         end_time = time.time()
         time_diff = end_time - start_time
         print("Time elapsed (final_results):", time_diff, "seconds")
