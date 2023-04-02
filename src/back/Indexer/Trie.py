@@ -1,3 +1,8 @@
+import logging
+
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+
+
 class TrieNode:
     def __init__(self):
         self.children = {}
@@ -7,7 +12,6 @@ class TrieNode:
 class TrieIndex:
     def __init__(self):
         self.root = TrieNode()
-        self.key_count = 0
 
     def insert(self, key, value):
         node = self.root
@@ -16,7 +20,6 @@ class TrieIndex:
                 node.children[char] = TrieNode()
             node = node.children[char]
         node.values.append(value)
-        self.key_count += 1
 
     def search(self, key):
         node = self.root
@@ -39,7 +42,8 @@ class TrieIndex:
         return keys
 
     def save(self, collection, batch_size=2000):
-        total_documents = self.key_count
+        total_keys = self.get_keys()
+        total_documents = len(total_keys)
 
         # Delete existing documents in the collection
         collection.delete_many({})
@@ -48,7 +52,7 @@ class TrieIndex:
         batch = []
         count = 0
         progress_threshold = 5000
-        for key in self.get_keys():
+        for key in total_keys:
             values = self.search(key)
             doc = {'_id': key, 'values': values}
             batch.append(doc)
@@ -56,10 +60,13 @@ class TrieIndex:
             if count % batch_size == 0:
                 collection.insert_many(batch)
                 batch = []
-            if count % progress_threshold == 0:
-                print(f"Processed {count} documents... {count / total_documents:.2%} ({count}/{total_documents})")
+            # if count % progress_threshold == 0:
+            print(f"Processed {count} documents... {count / total_documents:.2%} ({count}/{total_documents})",
+                  end="\r", flush=True)
         if batch:
             collection.insert_many(batch)
+            print(f"Processed {count} documents... {count / total_documents:.2%} ({count}/{total_documents})",
+                  end="\r", flush=True)
         print("Finished saving trie to MongoDB")
 
     def load(self, collection):
@@ -73,9 +80,10 @@ class TrieIndex:
             for value in values:
                 self.insert(key, value)
             count += 1
-            if count % progress_threshold == 0:
-                print(f"Processed {count} documents... {count / total_documents:.2%} ({count}/{total_documents})")
-        print(f"Loaded {total_documents} documents from collection")
+            # if count % progress_threshold == 0:
+            print(f"Processed {count} documents... {count / total_documents:.2%} ({count}/{total_documents})",
+                  end="\r", flush=True)
+        logging.info(f"Loaded {total_documents} documents from collection")
         return self
 
 

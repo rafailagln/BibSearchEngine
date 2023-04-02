@@ -11,9 +11,6 @@ cleaner = DataCleaner()
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
-
-
-
 class IndexCreator:
     def __init__(self, db, db_name='M151', index_collection='Index'):
         self.db_name = db_name
@@ -36,14 +33,12 @@ class IndexCreator:
                     doc_id = doc['doc_id']
                     if doc['title'] != ' ':
                         self.node_adder(doc_id, doc['title'], TITLE)
-                        count += 1
                     if doc['abstract'] != ' ':
                         self.node_adder(doc_id, doc['abstract'], ABSTRACT)
-                        count += 1
-
+                    count += 1
                     if count % progress_threshold == 0:
-                        print(f'Created {count}/{est_total_size} docs ({count / est_total_size:.2%})')
-                logging.info("Created index.\n")
+                        print(f'Created {count}/{est_total_size} docs ({count / est_total_size:.2%})', end="\r", flush=True)
+                logging.info("Created index.")
                 # Save index to db
                 logging.info("Saving index to db...")
                 self.index_dictionary.save(index_collection)

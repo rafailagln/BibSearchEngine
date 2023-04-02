@@ -5,14 +5,15 @@ from fastapi import FastAPI
 from typing import List
 import uvicorn
 from Ranker.Rank import SearchEngine
-from Data.FastJsonLoader import FastJsonLoader
+from Data.FastJsonLoader import FastJsonLoader, read_config_file
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 app = FastAPI()
 
 start_time = time.time()
-db = FastJsonLoader('/path/to/data/')
+documents_per_file = read_config_file('config.ini')
+db = FastJsonLoader('/path/to/data/', documents_per_file)
 db.load_documents()
 end_time = time.time()
 time_diff = end_time - start_time
@@ -23,7 +24,9 @@ engine = SearchEngine(db)
 
 @app.get('/search/{query}', response_model=List[dict])
 def search(query: str):
-    return engine.final_results(query)
+    results = engine.final_results(query)
+    logging.info(f"Returned {len(results)} documents")
+    return results
 
 
 if __name__ == "__main__":
