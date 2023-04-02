@@ -1,3 +1,4 @@
+from Indexer.IndexMetadata import Metadata
 from Preprocessor.DataCleaner import DataCleaner
 from Basics.connection2 import MongoDBConnection
 import logging
@@ -17,6 +18,7 @@ class IndexCreator:
         self.index_collection = index_collection
         self.index_dictionary = TrieIndex()
         self.db = db
+        self.index_metadata = Metadata()
 
     def create_index(self):
         with MongoDBConnection() as conn:
@@ -30,26 +32,35 @@ class IndexCreator:
                 count = 0
                 progress_threshold = 5000
                 for doc in docs:
+                    self.index_metadata.update_doc_num()
                     doc_id = doc['doc_id']
                     if doc['title'] != ' ':
-                        self.node_adder(doc_id, doc['title'], TITLE)
+                        cleaned_words = cleaner.cleanData(doc['title'])
+                        self.node_adder(doc_id, cleaned_words, TITLE)
+                        self.index_metadata.add_doc_length_field(doc_id, len(cleaned_words), field=TITLE)
+                        self.index_metadata.increase_average_length(len(cleaned_words), field=TITLE)
                     if doc['abstract'] != ' ':
-                        self.node_adder(doc_id, doc['abstract'], ABSTRACT)
+                        cleaned_words = cleaner.cleanData(doc['abstract'])
+                        self.node_adder(doc_id, cleaned_words, ABSTRACT)
+                        self.index_metadata.add_doc_length_field(doc_id, len(cleaned_words), field=ABSTRACT)
+                        self.index_metadata.increase_average_length(len(cleaned_words), field=ABSTRACT)
                     count += 1
                     if count % progress_threshold == 0:
                         print(f'Created {count}/{est_total_size} docs ({count / est_total_size:.2%})', end="\r", flush=True)
                 logging.info("Created index.")
+                self.index_metadata.calculate_average_length()
                 # Save index to db
                 logging.info("Saving index to db...")
-                self.index_dictionary.save(index_collection)
+                self.index_dictionary.save()
+                self.index_metadata.save()
             else:
                 # Index exists, load index from db
                 logging.info("Loading index...")
-                self.index_dictionary.load(index_collection)
+                self.index_dictionary.load()
+                self.index_metadata.load()
 
-    def node_adder(self, _id, _value, _type):
+    def node_adder(self, _id, cleaned_words, _type):
         _counter = 1
-        cleaned_words = cleaner.cleanData(_value)
         for word in cleaned_words:
             self.index_dictionary.insert(word, (_id, _counter, _type))
             _counter += 1

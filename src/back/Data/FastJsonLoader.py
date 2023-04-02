@@ -100,6 +100,7 @@ class FastJsonLoader:
         else:
             return None, None, None
 
+    # TODO: Must return results ordered
     def get_titles_abstracts_urls(self, doc_ids):
         results = []
         file_buckets = {}
