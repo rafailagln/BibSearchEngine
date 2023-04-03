@@ -15,15 +15,14 @@ class Metadata:
         self.total_docs += 1
 
     def add_doc_length_field(self, doc_id, length, field):
-        self.length_field[doc_id][field] = length
+        self.length_field[str(doc_id)][str(field)] = length
 
     def increase_average_length(self, length, field):
-        self.average_length[field] += length
+        self.average_length[str(field)] += length
 
     def calculate_average_length(self):
         for field in self.average_length.keys():
             self.average_length[field] /= self.total_docs
-
 
     def load(self):
         with MongoDBConnection() as conn:
@@ -47,18 +46,12 @@ class Metadata:
         with MongoDBConnection() as conn:
             mongo = conn.get_connection()
             metadata_collection = mongo.get_database(self.db_name).get_collection(self.metadata_collection)
-            length_field_data = dict()
-            for doc_id, fields in self.length_field.items():
-                length_field_data[str(doc_id)] = {'0': fields[0], '1': fields[1]}
-
-            average_length_data = dict()
-            average_length_data['0'] = self.average_length[0]
-            average_length_data['1'] = self.average_length[1]
 
             metadata_document = {
                 "metadata": "metadata",
-                "length_field": length_field_data,
-                "average_length": average_length_data,
+                "length_field": self.length_field,
+                "average_length": self.average_length,
                 "total_docs": self.total_docs
             }
+
             metadata_collection.update_one({"metadata": "metadata"}, {"$set": metadata_document}, upsert=True)

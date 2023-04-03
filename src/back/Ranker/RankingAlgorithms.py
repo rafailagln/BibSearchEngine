@@ -34,14 +34,14 @@ class BM25F:
         print("Time elapsed (idf calculation):", time_diff, "seconds")
 
         start_time = time.time()
-        tf_c = self._tf_field_calculation(query_terms, length_field)
+        tf_c = self._tf_field_calculation(query_terms)
         # from all doc_ids that we will score
         for doc_id in docs:
             temp_score = 0.0
             # from each field that we want to give a score
             for field in fields_weight_dict:
                 # not all documents have all fields
-                if length_field[doc_id][field] == 0:
+                if length_field[doc_id][str(field)] == 0:
                     continue
                 # for every term of the query
                 for term in query_terms:
@@ -51,9 +51,19 @@ class BM25F:
                     if tf == 0:
                         continue
                     # idf = self._idf(term)     // --> almost got half time with that change
-                    temp_score += idf[term] * ((tf * (k1 + 1)) /
-                                               (tf + (k1 * (
-                                                           1 - b + b * (length_field[doc_id][field] / avg_lf[field])))))
+                    temp_score += idf[term] * (
+                                                (tf * (k1 + 1)) /
+                                                (
+                                                    tf + (
+                                                        k1 * (
+                                                            1 - b + b * (
+                                                                length_field[doc_id][str(field)] /
+                                                                avg_lf[str(field)]
+                                                            )
+                                                        )
+                                                    )
+                                                ))
+
             score[doc_id] = temp_score
 
         end_time = time.time()
@@ -89,7 +99,7 @@ class BM25F:
             unique_docs.add(doc_id)
         return len(unique_docs)
 
-    def _tf_field_calculation(self, query_terms, length_field):
+    def _tf_field_calculation(self, query_terms):
         tf_results = defaultdict(lambda: defaultdict(lambda: defaultdict(float)))
         for word in query_terms:
             docs = self.inverted_index.search(word)
