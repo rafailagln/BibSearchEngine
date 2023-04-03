@@ -41,7 +41,7 @@ class BM25F:
             # from each field that we want to give a score
             for field in fields_weight_dict:
                 # not all documents have all fields
-                if length_field[doc_id][str(field)] == 0:
+                if length_field[str(doc_id)][str(field)] == 0:
                     continue
                 # for every term of the query
                 for term in query_terms:
@@ -57,7 +57,7 @@ class BM25F:
                                                     tf + (
                                                         k1 * (
                                                             1 - b + b * (
-                                                                length_field[doc_id][str(field)] /
+                                                                length_field[str(doc_id)][str(field)] /
                                                                 avg_lf[str(field)]
                                                             )
                                                         )
