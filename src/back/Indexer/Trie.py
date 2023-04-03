@@ -1,5 +1,5 @@
 import logging
-from Basics.connection2 import MongoDBConnection
+from Basics.connection import MongoDBConnection
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 

@@ -1,5 +1,5 @@
 from Preprocessor.DataCleaner import DataCleaner
-from Basics.connection import MongoDBConnection
+from Basics.connection_old import MongoDBConnection
 from Indexer.IndexValueInfo import InfoClass
 import pprint
 

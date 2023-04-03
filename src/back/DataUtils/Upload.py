@@ -1,7 +1,7 @@
 import os
 import pymongo
 import json
-from Basics.connection2 import MongoDBConnection
+from Basics.connection import MongoDBConnection
 
 with MongoDBConnection() as conn:
     mongo = conn.get_connection()

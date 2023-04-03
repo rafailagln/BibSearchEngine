@@ -6,7 +6,7 @@ import pymongo
 from Indexer.IndexCreator import IndexCreator
 from Preprocessor.DataCleaner import DataCleaner
 from Ranker.Relevancy import Relevancy
-from Basics.connection2 import MongoDBConnection
+from Basics.connection import MongoDBConnection
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 

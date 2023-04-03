@@ -1,5 +1,6 @@
 import pymongo
 
+
 class MongoDBConnection:
     def __init__(self, host='vmi1224404.contaboserver.net',
                  port=27017,
@@ -17,17 +18,18 @@ class MongoDBConnection:
         self.useNewUrlParser = True
         self.useUnifiedTopology = True
 
-# mongodb://m151User:YyKOhV1xa3mnmlFP@vmi1224404.contaboserver.net:27017/?authMechanism=DEFAULT&authSource=M151
-    def __enter__(self):
+    # Return the connection object
+    def get_connection(self):
         if self.username and self.password:
-            uri = f"mongodb://{self.username}:{self.password}@{self.host}:{self.port}/?authSource={self.auth_source}&authMechanism={self.auth_mechanism}, {self.useNewUrlParser}"
+            uri = f"mongodb://{self.username}:{self.password}@{self.host}:{self.port}/?authSource={self.auth_source}" \
+                  f"&authMechanism={self.auth_mechanism}"
             self.client = pymongo.MongoClient(uri)
-
-
         else:
             self.client = pymongo.MongoClient(self.host, self.port)
-        db = self.client['M151Dev']  # Replace with the name of your database
-        return db['Papers']  # Return the Papers collection
+        return self.client
+
+    def __enter__(self):
+        return self
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.client.close()

@@ -1,6 +1,6 @@
 from Indexer.IndexMetadata import Metadata
 from Preprocessor.DataCleaner import DataCleaner
-from Basics.connection2 import MongoDBConnection
+from Basics.connection import MongoDBConnection
 import logging
 
 from Indexer.Trie import TrieIndex
