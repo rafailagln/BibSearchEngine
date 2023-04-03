@@ -41,7 +41,7 @@ class SearchEngine:
     def final_results(self, user_query):
         start_time = time.time()
         ids = self.search(user_query)
-        results = self.db.get_titles_abstracts_urls(ids)
+        results = self.db.get_titles_abstracts_urls(ids, True)
         end_time = time.time()
         time_diff = end_time - start_time
         print("Time elapsed (final_results):", time_diff, "seconds")

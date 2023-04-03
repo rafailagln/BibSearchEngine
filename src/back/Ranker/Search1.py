@@ -2,7 +2,6 @@ import heapq
 import time
 from collections import defaultdict
 
-from Basics.connection2 import MongoDBConnection
 from Indexer.IndexCreator import TITLE, IndexCreator
 from Preprocessor.DataCleaner import DataCleaner
 
@@ -66,8 +65,7 @@ class SearchEngine:
         start_time = time.time()
 
         ids = self.search(user_query)
-        results = self.db.get_titles_abstracts_urls(ids)
-
+        results = self.db.get_titles_abstracts_urls(ids, True)
 
         end_time = time.time()
         time_diff = end_time - start_time

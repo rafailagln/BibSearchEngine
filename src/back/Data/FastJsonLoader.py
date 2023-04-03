@@ -101,9 +101,9 @@ class FastJsonLoader:
             return None, None, None
 
     # TODO: Must return results ordered
-    def get_titles_abstracts_urls(self, doc_ids):
-        results = []
+    def get_titles_abstracts_urls(self, doc_ids, sort_by_doc_id=False):
         file_buckets = {}
+        doc_id_order = {doc_id: i for i, doc_id in enumerate(doc_ids)}
 
         # Create buckets for doc_ids belonging to the same file
         for doc_id in doc_ids:
@@ -114,6 +114,7 @@ class FastJsonLoader:
                 file_buckets[file].append(doc_id)
 
         # Retrieve titles, abstracts, and URLs for each bucket
+        unordered_results = []
         for file, bucket_doc_ids in file_buckets.items():
             compressed_data = self.documents[file]
             item_data = json.loads(gzip.decompress(compressed_data).decode('utf-8'))
@@ -121,19 +122,22 @@ class FastJsonLoader:
             for doc_id in bucket_doc_ids:
                 index = self.metadata[doc_id]['index']
                 item = item_data[index]
-                results.append({
+                unordered_results.append({
+                    "order": doc_id_order[doc_id],
                     "doc_id": doc_id,
                     "title": item['title'],
                     "abstract": item['abstract'],
                     "URL": item['URL']
                 })
 
-        return results
+        # Sort results based on the order of doc_ids in the input or based on doc_ids
+        if sort_by_doc_id:
+            return sorted(unordered_results, key=lambda x: x['order'])
+        else:
+            return unordered_results
 
     def get_all_documents(self):
         all_ids = []
         for i in range(1, self.doc_id):
             all_ids.append(i)
         return self.get_titles_abstracts_urls(all_ids)
-
-
