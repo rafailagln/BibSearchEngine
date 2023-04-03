@@ -32,7 +32,7 @@ class Metadata:
             if metadata_document:
                 length_field_data = metadata_document.get("length_field", {})
                 for doc_id, fields in length_field_data.items():
-                    self.length_field[int(doc_id)] = defaultdict(int, fields)
+                    self.length_field[doc_id] = fields
                 self.average_length = defaultdict(float, metadata_document.get("average_length", {}))
                 self.total_docs = metadata_document.get("total_docs", 0)
             else:
