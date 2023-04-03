@@ -11,7 +11,7 @@ class TrieNode:
 
 
 class TrieIndex:
-    def __init__(self, db_name='M151Dev', index_collection='Index'):
+    def __init__(self, db_name='M151', index_collection='Index'):
         self.root = TrieNode()
         self.db_name = db_name
         self.index_collection = index_collection

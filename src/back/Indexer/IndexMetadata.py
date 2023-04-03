@@ -4,7 +4,7 @@ from Basics.connection import MongoDBConnection
 
 class Metadata:
 
-    def __init__(self, db_name='M151Dev', metadata_collection='Metadata'):
+    def __init__(self, db_name='M151', metadata_collection='Metadata'):
         self.length_field = defaultdict(lambda: defaultdict(int))
         self.average_length = defaultdict(float)
         self.total_docs = 0

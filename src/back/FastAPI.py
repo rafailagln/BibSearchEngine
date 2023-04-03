@@ -14,7 +14,7 @@ app = FastAPI()
 
 start_time = time.time()
 documents_per_file = read_config_file('config.ini')
-db = FastJsonLoader('/path/to/data/', documents_per_file)
+db = FastJsonLoader('/home/notaris/data/', documents_per_file)
 db.load_documents()
 end_time = time.time()
 time_diff = end_time - start_time
