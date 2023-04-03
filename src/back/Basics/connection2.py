@@ -4,9 +4,9 @@ import pymongo
 class MongoDBConnection:
     def __init__(self, host='vmi1224404.contaboserver.net',
                  port=27017,
-                 username='m151User',
+                 username='m151DevUser',
                  password='YyKOhV1xa3mnmlFP',
-                 auth_source='M151',
+                 auth_source='M151Dev',
                  auth_mechanism='DEFAULT'):
         self.host = host
         self.port = port

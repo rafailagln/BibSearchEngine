@@ -3,9 +3,9 @@ import pymongo
 class MongoDBConnection:
     def __init__(self, host='vmi1224404.contaboserver.net',
                  port=27017,
-                 username='m151User',
+                 username='m151DevUser',
                  password='YyKOhV1xa3mnmlFP',
-                 auth_source='M151',
+                 auth_source='M151Dev',
                  auth_mechanism='DEFAULT'):
         self.host = host
         self.port = port
@@ -26,7 +26,7 @@ class MongoDBConnection:
 
         else:
             self.client = pymongo.MongoClient(self.host, self.port)
-        db = self.client['M151']  # Replace with the name of your database
+        db = self.client['M151Dev']  # Replace with the name of your database
         return db['Papers']  # Return the Papers collection
 
     def __exit__(self, exc_type, exc_value, traceback):

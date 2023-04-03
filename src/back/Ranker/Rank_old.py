@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %
 
 
 class Rank:
-    def __init__(self, db_name='M151', collection_name='Papers_big'):
+    def __init__(self, db_name='M151Dev', collection_name='Papers_big'):
         self.cleaner = DataCleaner()
         self.relevancy = Relevancy()
         self.indexer = IndexCreator()
