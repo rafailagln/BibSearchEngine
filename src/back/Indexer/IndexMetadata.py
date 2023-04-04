@@ -24,34 +24,51 @@ class Metadata:
         for field in self.average_length.keys():
             self.average_length[field] /= self.total_docs
 
+    def set_total_docs(self, num):
+        self.total_docs = num
+
     def load(self):
         with MongoDBConnection() as conn:
             mongo = conn.get_connection()
             metadata_collection = mongo.get_database(self.db_name).get_collection(self.metadata_collection)
-            metadata_document = metadata_collection.find_one({"metadata": "metadata"})
-            if metadata_document:
-                length_field_data = metadata_document.get("length_field", {})
-                for doc_id, fields in length_field_data.items():
-                    self.length_field[doc_id] = fields
-                self.average_length = defaultdict(float, metadata_document.get("average_length", {}))
-                self.total_docs = metadata_document.get("total_docs", 0)
-            else:
+
+            # Load length_field data from separate documents
+            length_field_documents = metadata_collection.find({"doc_id": {"$exists": True}})
+            for document in length_field_documents:
+                doc_id = document["doc_id"]
+                fields = document["fields"]
+                self.length_field[doc_id] = fields
+
+            # Load average_length data from the separate document
+            average_length_document = metadata_collection.find_one({"average_length": {"$exists": True}})
+            if average_length_document:
+                self.average_length = defaultdict(float, average_length_document.get("average_length", {}))
+
+            # If neither document exists, print a message and start with default values
+            if length_field_documents and not average_length_document:
                 print("No metadata found in the collection. Starting with default values.")
 
-    # TODO:
-    #  1. Don't save metadata, total_docs  attribute
-    #  2. Insert one document for average_length_data
-    #  3. Insert one document per entry of length field
+            print("Loaded all metadata from MongoDB")
+
     def save(self):
         with MongoDBConnection() as conn:
             mongo = conn.get_connection()
             metadata_collection = mongo.get_database(self.db_name).get_collection(self.metadata_collection)
 
-            metadata_document = {
-                "metadata": "metadata",
-                "length_field": self.length_field,
-                "average_length": self.average_length,
-                "total_docs": self.total_docs
-            }
+            # Save each value in length_field as a separate document
+            length_field_documents = []
+            for doc_id, fields in self.length_field.items():
+                length_field_documents.append({
+                    "doc_id": doc_id,
+                    "fields": fields
+                })
+            metadata_collection.insert_many(length_field_documents)
 
-            metadata_collection.update_one({"metadata": "metadata"}, {"$set": metadata_document}, upsert=True)
+            # Save average_length data in a separate document
+            average_length_document = {
+                "average_length": self.average_length
+            }
+            metadata_collection.update_one({"average_length": {"$exists": True}}, {"$set": average_length_document},
+                                           upsert=True)
+
+            print("Finished saving metadata to MongoDB")
