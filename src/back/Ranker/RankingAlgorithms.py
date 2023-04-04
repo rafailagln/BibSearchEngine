@@ -4,10 +4,6 @@ import time
 from collections import defaultdict
 
 
-def tokenize(text):
-    return text.lower().split()
-
-
 class BM25F:
 
     def __init__(self, inverted_index, total_docs):
@@ -35,6 +31,10 @@ class BM25F:
 
         start_time = time.time()
         tf_c = self._tf_field_calculation(query_terms)
+        end_time = time.time()
+        time_diff = end_time - start_time
+        print("Time elapsed (TF_FIELD):", time_diff, "seconds")
+        start_time = time.time()
         # from all doc_ids that we will score
         for doc_id in docs:
             temp_score = 0.0
@@ -43,26 +43,14 @@ class BM25F:
                 # not all documents have all fields
                 if length_field[str(doc_id)][str(field)] == 0:
                     continue
+                factor = k1 * (1 - b + b * (length_field[str(doc_id)][str(field)] / avg_lf[str(field)]))
                 # for every term of the query
                 for term in query_terms:
-                    # tf_1 = fields_weight_dict[field] * self._tf_field(term, field, length_field[doc_id][field])
                     tf = fields_weight_dict[field] * tf_c[term][doc_id][field]
                     # if term do not exist in this field of document, we don't have to compute score...
                     if tf == 0:
                         continue
-                    # idf = self._idf(term)     // --> almost got half time with that change
-                    temp_score += idf[term] * (
-                                                (tf * (k1 + 1)) /
-                                                (
-                                                    tf + (
-                                                        k1 * (
-                                                            1 - b + b * (
-                                                                length_field[str(doc_id)][str(field)] /
-                                                                avg_lf[str(field)]
-                                                            )
-                                                        )
-                                                    )
-                                                ))
+                    temp_score += idf[term] * ((tf * (k1 + 1)) / (tf + factor))
 
             score[doc_id] = temp_score
 
@@ -80,17 +68,13 @@ class BM25F:
         idf_dict = defaultdict(float)
         for word in query_terms:
             unique_docs = self._number_of_word_docs(word)
-            # return math.log(((self.total_docs - unique_docs + 0.5) / (unique_docs + 0.5)) + 1)
-            if unique_docs != 0:
-                idf_dict[word] = math.log(self.total_docs / unique_docs)
-            else:
-                idf_dict[word] = 0
+            idf_dict[word] = math.log((self.total_docs - unique_docs + 0.5) / (unique_docs + 0.5))
         return idf_dict
 
     def _idf(self, word):
         unique_docs = self._number_of_word_docs(word)
-        # return math.log(((self.total_docs - unique_docs + 0.5) / (unique_docs + 0.5)) + 1)
-        return math.log(self.total_docs / unique_docs)
+        return math.log((self.total_docs - unique_docs + 0.5) / (unique_docs + 0.5))
+        # return math.log(self.total_docs / unique_docs)
 
     def _number_of_word_docs(self, word):
         docs = self.inverted_index.search(word)

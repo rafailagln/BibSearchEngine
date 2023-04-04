@@ -25,8 +25,12 @@ class SearchEngine:
 
         print("Searching", len(searching_docs), " number of docs (before boolean)")
         # if exists too many documents, cut them to threshold with BooleanSearch
-        # if len(searching_docs) > self.max_results:
-        #     searching_docs = self.bir.boolean_search(cleaned_query)
+        start2_time = time.time()
+        if len(searching_docs) > self.max_results:
+            searching_docs = self.bir.boolean_search(cleaned_query)
+        end2_time = time.time()
+        time_diff = end2_time - start2_time
+        print("Time elapsed (BIR search):", time_diff, "seconds")
 
         print("Searching", len(searching_docs), " number of docs (after boolean)")
         # rank documents with BM25F algorithm
@@ -34,7 +38,7 @@ class SearchEngine:
                                        self.index_metadata.length_field, self.index_metadata.average_length)
 
         end_time = time.time()
-        time_diff = end_time - start_time
+        time_diff = end_time - end2_time
         print("Time elapsed (search):", time_diff, "seconds")
         return scored_docs
 
