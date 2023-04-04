@@ -25,6 +25,7 @@ class IndexCreator:
             mongo = conn.get_connection()
             index_collection = mongo.get_database(self.db_name).get_collection(self.index_collection)
             docs = self.db.get_all_documents()
+            self.index_metadata.set_total_docs(len(docs))
             if index_collection.count_documents({}) == 0:
                 # Index collection is empty, create index and save to collection
                 logging.info("Creating index...")
@@ -32,7 +33,6 @@ class IndexCreator:
                 count = 0
                 progress_threshold = 5000
                 for doc in docs:
-                    self.index_metadata.update_doc_num()
                     doc_id = doc['doc_id']
                     if doc['title'] != ' ':
                         cleaned_words = cleaner.cleanData(doc['title'])
@@ -49,14 +49,14 @@ class IndexCreator:
                         print(f'Created {count}/{est_total_size} docs ({count / est_total_size:.2%})', end="\r", flush=True)
                 logging.info("Created index.")
                 self.index_metadata.calculate_average_length()
-                # Save index to db
                 logging.info("Saving index to db...")
                 self.index_dictionary.save()
+                logging.info("Saving metadata to db...")
                 self.index_metadata.save()
             else:
-                # Index exists, load index from db
                 logging.info("Loading index...")
                 self.index_dictionary.load()
+                logging.info("Loading metadata...")
                 self.index_metadata.load()
 
     def node_adder(self, _id, cleaned_words, _type):
