@@ -26,7 +26,7 @@ engine = SearchEngine(db, max_results=10000)
 # Add the following middleware to add the Access-Control-Allow-Origin header
 origins = [
     # "http://localhost",
-    "http://vmi1224404.contaboserver.net:8080",
+    "http://localhost:8080",
 ]
 
 app.add_middleware(
