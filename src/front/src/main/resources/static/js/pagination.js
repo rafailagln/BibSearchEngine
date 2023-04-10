@@ -139,7 +139,7 @@ function createNextButton() {
 
 async function fetchDataForIds(ids) {
     // Make the API call to fetch data for the given document IDs
-    const response = await fetch('/api/fetch_data/', {
+    const response = await fetch('/bibengine/api/fetch_data/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
