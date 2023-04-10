@@ -1,10 +1,11 @@
 import logging
+import uvicorn
 import time
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from typing import List
-import uvicorn
-# from Ranker.Rank import SearchEngine
+# from Ranker.Search1 import SearchEngine
 from Ranker.Search2 import SearchEngine
 from Data.FastJsonLoader import FastJsonLoader, read_config_file
 
@@ -22,11 +23,32 @@ logging.info(f"Time to load to memory: {time_diff} seconds")
 
 engine = SearchEngine(db, max_results=10000)
 
+# Add the following middleware to add the Access-Control-Allow-Origin header
+origins = [
+    # "http://localhost",
+    "http://localhost:8080",
+]
 
-@app.get('/search/{query}', response_model=List[dict])
-def search(query: str):
-    results = engine.final_results(query)
-    logging.info(f"Returned {len(results)} documents")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+@app.get('/search_ids/{query}', response_model=List[int])
+def search_ids(query: str):
+    ids = engine.search_ids(query)
+    logging.info(f"Returned {len(ids)} document IDs")
+    return ids
+
+
+@app.post('/fetch_data/', response_model=List[dict])
+def fetch_data(ids: List[int]):
+    results = engine.fetch_data(ids)
+    logging.info(f"Fetched data for {len(results)} documents")
     return results
 
 
