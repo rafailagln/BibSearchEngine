@@ -27,14 +27,15 @@ def calculate_proximity(positions_dict):
 
 class SearchEngine:
 
-    def __init__(self, db):
+    def __init__(self, db, max_results):
         self.indexer = IndexCreator(db)
         self.indexer.create_index()
         self.index_dictionary = self.indexer.index_dictionary
         self.cleaner = DataCleaner()
         self.db = db
+        self.max_results = max_results
 
-    def search(self, query, max_results=10000):
+    def search(self, query):
         start_time = time.time()
         cleaned_query = self.cleaner.cleanData(query)
         results = defaultdict(lambda: defaultdict(int))
@@ -55,19 +56,19 @@ class SearchEngine:
             for field, count in results[doc_id].items():
                 scores[doc_id] += calculate_score(field, count) * proximity_score
 
-        sorted_scores = heapq.nlargest(max_results, scores.items(), key=lambda x: x[1])
+        sorted_scores = heapq.nlargest(self.max_results, scores.items(), key=lambda x: x[1])
         end_time = time.time()
         time_diff = end_time - start_time
         print("Time elapsed (search):", time_diff, "seconds")
         return [doc_id for doc_id, score in sorted_scores]
 
-    def final_results(self, user_query):
+    def search_ids(self, user_query):
         start_time = time.time()
-
         ids = self.search(user_query)
-        results = self.db.get_titles_abstracts_urls(ids, True)
-
         end_time = time.time()
         time_diff = end_time - start_time
         print("Time elapsed (final_results):", time_diff, "seconds")
-        return results
+        return ids
+
+    def fetch_data(self, ids):
+        return self.db.get_titles_abstracts_urls(ids, True)

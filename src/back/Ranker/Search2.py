@@ -42,14 +42,17 @@ class SearchEngine:
         print("Time elapsed (search):", time_diff, "seconds")
         return scored_docs
 
-    def final_results(self, user_query):
+    def search_ids(self, user_query):
         start_time = time.time()
         ids = self.search(user_query)
-        results = self.db.get_titles_abstracts_urls(ids, True)
+        # results = self.db.get_titles_abstracts_urls(ids, True)
         end_time = time.time()
         time_diff = end_time - start_time
         print("Time elapsed (final_results):", time_diff, "seconds")
-        return results
+        return ids
+
+    def fetch_data(self, ids):
+        return self.db.get_titles_abstracts_urls(ids, True)
 
     def _count_results(self, query_terms):
         docs = set()

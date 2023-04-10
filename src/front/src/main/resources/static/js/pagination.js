@@ -1,31 +1,36 @@
-// Get the list of search results and the pagination links
-const resultsList = document.getElementById('resultsList');
-const pagination = document.getElementById('pagination');
+const resultsList = document.getElementById("resultsList");
+let finalIds = null;
+const pagination = document.getElementById("pagination");
 const resultsPerPage = 10;
 const totalResults = resultsList.childElementCount;
 const totalPages = Math.ceil(totalResults / resultsPerPage);
 let currentPage = 1;
 
-// Function to display the results for the current page and update the pagination links
-function displayResults(page) {
-    // Calculate the start and end index for the current page
+async function displayResults(page) {
+    finalIds = finalIds || resultsList.cloneNode(true);
+    const idsToFetch = getIdsToFetch(page);
+    const results = await fetchDataForIds(idsToFetch);
+    displayFetchedData(results);
+    handlePagination();
+}
+
+function getIdsToFetch(page) {
     const startIndex = (page - 1) * resultsPerPage;
     const endIndex = startIndex + resultsPerPage;
 
-    // Hide all the search results
-    for (let i = 0; i < totalResults; i++) {
-        resultsList.children[i].classList.add('d-none');
-    }
+    return Array.from(finalIds.children)
+        .slice(startIndex, endIndex)
+        .map((elem) => parseInt(elem.querySelector(".doc_id").innerText));
+}
 
-    // Show the search results for the current page
-    for (let i = startIndex; i < endIndex && i < totalResults; i++) {
-        resultsList.children[i].classList.remove('d-none');
-    }
+function handlePagination() {
+    pagination.innerHTML = "";
+    createPreviousButton();
+    createPageLinks();
+    createNextButton();
+}
 
-    // Update the pagination links
-    pagination.innerHTML = '';
-
-    // Create the previous button
+function createPreviousButton() {
     const previousButton = document.createElement('li');
     previousButton.classList.add('page-item');
     if (currentPage === 1) {
@@ -38,7 +43,16 @@ function displayResults(page) {
     previousButton.appendChild(previousLink);
     pagination.appendChild(previousButton);
 
-    // Create the numbered page links
+    // Event Listener
+    previousLink.addEventListener('click', () => {
+        if (currentPage > 1) {
+            currentPage--;
+            displayResults(currentPage);
+        }
+    });
+}
+
+function createPageLinks() {
     const pageLinks = [];
     if (totalPages <= 15) {
         for (let i = 1; i <= totalPages; i++) {
@@ -99,8 +113,9 @@ function displayResults(page) {
             });
         }
     }
+}
 
-    // Create next button
+function createNextButton() {
     const nextButton = document.createElement('li');
     nextButton.classList.add('page-item');
     if (currentPage === totalPages) {
@@ -113,13 +128,7 @@ function displayResults(page) {
     nextButton.appendChild(nextLink);
     pagination.appendChild(nextButton);
 
-    // Add event listeners for next and previous
-    previousLink.addEventListener('click', () => {
-        if (currentPage > 1) {
-            currentPage--;
-            displayResults(currentPage);
-        }
-    });
+    // Event listener
     nextLink.addEventListener('click', () => {
         if (currentPage < totalPages) {
             currentPage++;
@@ -128,5 +137,52 @@ function displayResults(page) {
     });
 }
 
-// Display the results for the first page
+async function fetchDataForIds(ids) {
+    // Make the API call to fetch data for the given document IDs
+    const response = await fetch('http://127.0.0.1:5000/fetch_data/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(ids),
+    });
+
+    if (response.ok) {
+        return await response.json();
+    } else {
+        console.error('Failed to fetch data for the given document IDs');
+        return [];
+    }
+}
+
+function displayFetchedData(fetchedData) {
+    // Clear the existing content in the resultsList
+    resultsList.innerHTML = '';
+
+    // Iterate through the fetched data and display it in the resultsList
+    fetchedData.forEach(data => {
+        // Create a new element to display the data (e.g., a div, list item, or any other appropriate element)
+        const resultElement = document.createElement('div');
+        resultElement.classList.add('result-container');
+
+        // Truncate the description and title after a specified number of words
+        const snippet = truncateAfterWords(data.abstract, 100); // 100-word limit for snippet
+        const title = truncateAfterWords(data.title, 20); // 20-word limit for title
+
+        // Populate the resultElement with the data (customize this according to your data structure)
+        resultElement.innerHTML = `<p class="result-url">${data.URL}</p>
+            <a href="${data.URL}" target="_blank" class="result-title">${title}</a>
+            <p class="result-snippet">${snippet}</p>`;
+
+        // Add the resultElement to the resultsList
+        resultsList.appendChild(resultElement);
+    });
+}
+
+// Function to truncate text after a specified number of words
+function truncateAfterWords(text, wordLimit) {
+    const words = text.split(' ');
+    return words.length > wordLimit ? words.slice(0, wordLimit).join(' ') + '...' : text;
+}
+
 displayResults(1);

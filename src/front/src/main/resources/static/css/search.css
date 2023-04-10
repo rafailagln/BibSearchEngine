@@ -1,0 +1,46 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+ul {
+    list-style: none; /* Remove the bullet */
+    padding: 0;
+}
+
+li {
+    margin-bottom: 0rem;
+}
+
+p {
+    margin-bottom: 0rem;
+    margin-top: 0rem;
+}
+
+.pagination {
+    margin-top: 2rem;
+}
+
+.result-container {
+    font-family: Arial, sans-serif;
+}
+
+.result-title {
+    font-size: 18px;
+    color: #1a0dab;
+    text-decoration: none;
+}
+.result-title:hover {
+    text-decoration: underline;
+}
+.result-snippet {
+    font-size: 14px;
+    color: #4d5156;
+    line-height: 1.4;
+}
+.result-url {
+    font-size: 14px;
+    color: #006621;
+    margin-top: 1rem;
+}
