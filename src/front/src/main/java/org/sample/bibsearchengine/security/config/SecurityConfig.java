@@ -23,15 +23,14 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .securityMatcher(antMatcher("/api/**"))
+                .securityMatcher(antMatcher("/ap/**"))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(antMatcher("/search")).permitAll()
                         .requestMatchers(antMatcher("/index")).permitAll()
-                        //.requestMatchers(regexMatcher("/admin/.*")).permitAll()
+                        .requestMatchers(antMatcher("/api/fetch_data")).permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(withDefaults());
         return http.build();
     }
 }
-
