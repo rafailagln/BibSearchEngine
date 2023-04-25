@@ -1,4 +1,5 @@
 import time
+from collections import defaultdict
 
 from Indexer.IndexCreator import IndexCreator, TITLE, ABSTRACT
 from Preprocessor.DataCleaner import DataCleaner
@@ -21,7 +22,15 @@ class SearchEngine:
     def search(self, query):
         start_time = time.time()
         cleaned_query = self.cleaner.cleanData(query)
-        searching_docs = list(self._count_results(cleaned_query))
+        all_docs = list(self._count_results(cleaned_query))
+
+        # Αdd AND-semantics of query to searching results
+        # All words in the text must be present
+        searching_docs = list(self.add_and_semantics(cleaned_query, all_docs))
+
+        # if none document have all words use all documents
+        if len(searching_docs) == 0:
+            searching_docs = all_docs
 
         print("Searching", len(searching_docs), " number of docs (before boolean)")
         # if exists too many documents, cut them to threshold with BooleanSearch
@@ -45,7 +54,6 @@ class SearchEngine:
     def search_ids(self, user_query):
         start_time = time.time()
         ids = self.search(user_query)
-        # results = self.db.get_titles_abstracts_urls(ids, True)
         end_time = time.time()
         time_diff = end_time - start_time
         print("Time elapsed (final_results):", time_diff, "seconds")
@@ -61,6 +69,21 @@ class SearchEngine:
             for doc_id, position, field in temp_docs:
                 docs.add(doc_id)
         return docs
+
+    # This function adds "soft" AND-semantics because it doesn't
+    # take into consideration if the word is in the same field
+    def add_and_semantics(self, query_terms, unique_docs):
+        docs = {key: 0 for key in unique_docs}
+        for word in query_terms:
+            previous_doc = -1
+            posting_list_docs = self.inverted_index.search(word)
+            for doc_id, position, field in posting_list_docs:
+                if doc_id != previous_doc:
+                    docs[doc_id] += 1
+                    previous_doc = doc_id
+                else:
+                    continue
+        return [key for key, value in docs.items() if value == len(query_terms)]
 
     @staticmethod
     def _get_weight_dict():
