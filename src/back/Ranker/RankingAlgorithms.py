@@ -57,12 +57,8 @@ class BM25F:
         end_time = time.time()
         time_diff = end_time - start_time
         print("Time elapsed (BM25F search):", time_diff, "seconds")
-        start_time = time.time()
-        sorted_scores = sorted(score.items(), key=lambda x: x[1], reverse=True)
-        end_time = time.time()
-        time_diff = end_time - start_time
-        print("Sorting (BM25F search):", time_diff, "seconds")
-        return [doc_id for doc_id, score in sorted_scores]
+
+        return score
 
     def _idf_calculation(self, query_terms):
         idf_dict = defaultdict(float)
