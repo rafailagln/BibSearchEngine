@@ -28,6 +28,18 @@ class Metadata:
     def add_referenced_by(self, doc_id, referenced):
         self.referenced_by[str(doc_id)] = referenced
 
+    def normalize_referenced_by(self):
+        max_val = max(self.referenced_by.values())
+        min_val = min(self.referenced_by.values())
+
+        for key in self.referenced_by:
+            self.referenced_by[key] -= min_val
+
+        # Divide each value by the range
+        range_val = max_val - min_val
+        for key in self.referenced_by:
+            self.referenced_by[key] /= range_val
+
     def set_total_docs(self, num):
         self.total_docs = num
 
