@@ -53,12 +53,14 @@ class FastJsonLoader:
                     title = item.get('title', [''])[0].replace('\n', ' ')
                     abstract = item.get('abstract', '').replace('\n', ' ')
                     url = item.get('URL', '').replace('\n', ' ')
+                    referenced_by = item.get('is-referenced-by-count', '')
 
                     file_content.append({
                         'doc_id': self.doc_id,
                         'title': title,
                         'abstract': abstract,
-                        'URL': url
+                        'URL': url,
+                        'referenced_by': referenced_by
                     })
 
                     self.metadata[self.doc_id] = {
@@ -126,7 +128,8 @@ class FastJsonLoader:
                     "doc_id": doc_id,
                     "title": item['title'],
                     "abstract": item['abstract'],
-                    "URL": item['URL']
+                    "URL": item['URL'],
+                    "referenced_by": item['referenced_by']
                 })
 
         # Sort results based on the order of doc_ids in the input or based on doc_ids

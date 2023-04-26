@@ -44,6 +44,8 @@ class IndexCreator:
                         self.node_adder(doc_id, cleaned_words, ABSTRACT)
                         self.index_metadata.add_doc_length_field(doc_id, len(cleaned_words), field=ABSTRACT)
                         self.index_metadata.increase_average_length(len(cleaned_words), field=ABSTRACT)
+                    if doc['referenced_by'] != ' ':
+                        self.index_metadata.add_referenced_by(doc_id, doc['referenced_by'])
                     count += 1
                     if count % progress_threshold == 0:
                         print(f'Created {count}/{est_total_size} docs ({count / est_total_size:.2%})', end="\r", flush=True)
