@@ -7,7 +7,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from typing import List
 # from Ranker.Search1 import SearchEngine
 from Ranker.Search2 import SearchEngine
-from Data.FastJsonLoader import FastJsonLoader, read_config_file
+from distributed.fast_json_loader import FastJsonLoader
+from config.read_config import read_config_file
+
+# TODO: add search_ids and fetch_data in new thread to have non-blocking actions
+# TODO: convert FastAPI to accept request from frond, forward to node, get results
+#       and then fetch results in buckets
+
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -15,7 +21,7 @@ app = FastAPI()
 
 start_time = time.time()
 documents_per_file = read_config_file('config.ini')
-db = FastJsonLoader('/path/to/data/', documents_per_file)
+db = FastJsonLoader('/Users/notaris/Downloads/dataBib/', documents_per_file)
 db.load_documents()
 end_time = time.time()
 time_diff = end_time - start_time
@@ -25,7 +31,7 @@ engine = SearchEngine(db, max_results=10000)
 
 # Add the following middleware to add the Access-Control-Allow-Origin header
 origins = [
-    # "http://localhost",
+    "http://localhost",
     "http://localhost:8080",
 ]
 

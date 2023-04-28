@@ -1,0 +1,25 @@
+{
+    "nodes": [
+        {
+            "id": 1,
+            "host": "localhost",
+            "port": 8081,
+            "leader": true,
+            "first_boot": true
+        },
+        {
+            "id": 2,
+            "host": "localhost",
+            "port": 8082,
+            "leader": false,
+            "first_boot": true
+        },
+        {
+            "id": 3,
+            "host": "localhost",
+            "port": 8083,
+            "leader": false,
+            "first_boot": true
+        }
+    ]
+}

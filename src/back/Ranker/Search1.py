@@ -29,7 +29,7 @@ class SearchEngine:
 
     def __init__(self, db, max_results):
         self.indexer = IndexCreator(db)
-        self.indexer.create_index()
+        self.indexer.create_load_index()
         self.index_dictionary = self.indexer.index_dictionary
         self.cleaner = DataCleaner()
         self.db = db
@@ -71,4 +71,4 @@ class SearchEngine:
         return ids
 
     def fetch_data(self, ids):
-        return self.db.get_titles_abstracts_urls(ids, True)
+        return self.db.get_data(ids, True)

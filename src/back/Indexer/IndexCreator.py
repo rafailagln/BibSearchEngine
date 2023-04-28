@@ -1,9 +1,8 @@
 from Indexer.IndexMetadata import Metadata
+from Indexer.Trie import TrieIndex
 from Preprocessor.DataCleaner import DataCleaner
 from Basics.connection import MongoDBConnection
 import logging
-
-from Indexer.Trie import TrieIndex
 
 TITLE = 0
 ABSTRACT = 1
@@ -13,14 +12,14 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %
 
 
 class IndexCreator:
-    def __init__(self, db, db_name='M151Dev', index_collection='Index'):
+    def __init__(self, db, metadata_collection, db_name='M151Dev', index_collection='Index',):
         self.db_name = db_name
         self.index_collection = index_collection
-        self.index_dictionary = TrieIndex()
+        self.index_dictionary = TrieIndex(db_name=db_name, index_collection=index_collection)
         self.db = db
-        self.index_metadata = Metadata()
+        self.index_metadata = Metadata(metadata_collection=metadata_collection)
 
-    def create_index(self):
+    def create_load_index(self):
         with MongoDBConnection() as conn:
             mongo = conn.get_connection()
             index_collection = mongo.get_database(self.db_name).get_collection(self.index_collection)
