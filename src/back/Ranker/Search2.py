@@ -8,16 +8,13 @@ from Ranker.RankingAlgorithms import BooleanInformationRetrieval, BM25F
 
 class SearchEngine:
 
-    def __init__(self, db, max_results):
-        self.indexer = IndexCreator(db)
-        self.indexer.create_index()
-        self.inverted_index = self.indexer.index_dictionary
-        self.index_metadata = self.indexer.index_metadata
+    def __init__(self, index, max_results):
+        self.inverted_index = index.index_dictionary
+        self.index_metadata = index.index_metadata
         self.cleaner = DataCleaner()
         self.max_results = max_results
         self.bir = BooleanInformationRetrieval(self.inverted_index, self.max_results)
         self.bm25f = BM25F(self.inverted_index, total_docs=self.index_metadata.total_docs)
-        self.db = db
 
     def search(self, query):
         final_scored_docs = defaultdict(float)
@@ -59,7 +56,8 @@ class SearchEngine:
         time_diff = end_time - end2_time
         print("Time elapsed (search):", time_diff, "seconds")
         # [doc_id for doc_id, score in self.sort_documents(final_scored_docs)]
-        return [doc_id for doc_id, score in self.sort_documents(final_scored_docs)]
+        # return [doc_id for doc_id, score in self.sort_documents(final_scored_docs)]
+        return final_scored_docs
 
     def search_ids(self, user_query):
         start_time = time.time()
@@ -69,8 +67,8 @@ class SearchEngine:
         print("Time elapsed (final_results):", time_diff, "seconds")
         return ids
 
-    def fetch_data(self, ids):
-        return self.db.get_titles_abstracts_urls(ids, True)
+    # def fetch_data(self, ids):
+    #     return self.db.get_data(ids, True)
 
     def _count_results(self, query_terms):
         docs = set()

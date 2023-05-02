@@ -16,7 +16,7 @@ class Rank:
         self.cleaner = DataCleaner()
         self.relevancy = Relevancy()
         self.indexer = IndexCreator()
-        self.indexer.create_index()
+        self.indexer.create_load_index()
         self.db_name = db_name
         self.collection_name = collection_name
         self.trie = self.indexer.index_dictionary
