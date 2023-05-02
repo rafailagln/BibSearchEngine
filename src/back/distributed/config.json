@@ -3,21 +3,21 @@
         {
             "id": 1,
             "host": "localhost",
-            "port": 8081,
+            "port": 9091,
             "leader": true,
             "first_boot": true
         },
         {
             "id": 2,
             "host": "localhost",
-            "port": 8082,
+            "port": 9092,
             "leader": false,
             "first_boot": true
         },
         {
             "id": 3,
             "host": "localhost",
-            "port": 8083,
+            "port": 9093,
             "leader": false,
             "first_boot": true
         }

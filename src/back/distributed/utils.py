@@ -26,18 +26,32 @@ def count_documents_in_files(folder_path):
     return total_documents
 
 
+# request without SSL encryption
 def send_request(node_addr, request):
-    context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
-    context.load_verify_locations('/Users/notaris/git/BibSearchEngine/src/back/distributed/key/cert.pem')
-
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        with context.wrap_socket(sock, server_hostname='localhost') as ssock:
-            ssock.connect(node_addr)
-            ssock.sendall(json.dumps(request).encode())
-            response = ssock.recv(10000).decode()
+        sock.connect(node_addr)
+        sock.sendall(json.dumps(request).encode())
+        response = sock.recv(10000).decode()
 
-            try:
-                return json.loads(response)
-            except json.JSONDecodeError as e:
-                print(f"Failed to decode JSON response: {e}")
-                return None
+        try:
+            return json.loads(response)
+        except json.JSONDecodeError as e:
+            print(f"Failed to decode JSON response: {e}")
+            return None
+
+# request with SSL encryption
+# def send_request(node_addr, request):
+#     context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+#     context.load_verify_locations('/home/giannis-pc/Desktop/BibSearchEngine/src/back/distributed/key/cert.pem')
+#
+#     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+#         with context.wrap_socket(sock, server_hostname='localhost') as ssock:
+#             ssock.connect(node_addr)
+#             ssock.sendall(json.dumps(request).encode())
+#             response = ssock.recv(10000).decode()
+#
+#             try:
+#                 return json.loads(response)
+#             except json.JSONDecodeError as e:
+#                 print(f"Failed to decode JSON response: {e}")
+#                 return None

@@ -6,10 +6,10 @@ from distributed.utils import send_request
 
 def main():
     start_time = time.time()
-    node1_addr = ('localhost', 8083)
+    node1_addr = ('localhost', 9093)
     # Insert key-value pairs
     insert_request = \
-        {'action': 'get_data', 'forwarded': False, 'ids': list(range(1, 1000))}
+        {'action': 'get_data', 'forwarded': False, 'ids': list(range(1, 10))}
     response = send_request(node1_addr, insert_request)
     print(f"Insert response: {response['results']}")
     end_time = time.time()

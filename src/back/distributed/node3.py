@@ -151,6 +151,7 @@ class DistributedNode:
                         f"Node {self.node_id}: Failed to notify node {_node['id']} of the new leader {leader['id']}."
                         f" {e}")
 
+    # run without SSL encryption
     def run(self):
         with open("config.json", "r") as f:
             config = json.load(f)
@@ -160,11 +161,6 @@ class DistributedNode:
             heartbeat_thread = threading.Thread(target=self.check_heartbeats)
             heartbeat_thread.start()
 
-        context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-        context.load_cert_chain(certfile="/Users/notaris/git/BibSearchEngine/src/back/distributed/key/cert.pem",
-                                keyfile="/Users/notaris/git/BibSearchEngine/src/back/distributed/key/key.pem",
-                                password=self.passphrase)
-
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0) as sock:
             sock.bind(('localhost', self.node_port))
             sock.listen(5)
@@ -173,12 +169,41 @@ class DistributedNode:
             while True:
                 conn, addr = sock.accept()
                 print(f"Node {self.node_id}: Connection accepted from {addr}")
-                with context.wrap_socket(conn, server_side=True) as sconn:
-                    request = sconn.recv(10000).decode()
-                    print(f"Node {self.node_id}: Received request: {request[:100]}")
-                    response = self.handle_request(request)
-                    print(f"Node {self.node_id}: Sending response: {response[:100]}")
-                    sconn.sendall(response.encode())
+                request = conn.recv(10000).decode()
+                print(f"Node {self.node_id}: Received request: {request[:100]}")
+                response = self.handle_request(request)
+                print(f"Node {self.node_id}: Sending response: {response[:100]}")
+                conn.sendall(response.encode())
+
+    # run with encryption
+    # def run(self):
+    #     with open("config.json", "r") as f:
+    #         config = json.load(f)
+    #         nodes = config["nodes"]
+    #
+    #     if nodes[self.node_id - 1]['leader']:
+    #         heartbeat_thread = threading.Thread(target=self.check_heartbeats)
+    #         heartbeat_thread.start()
+    #
+    #     context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    #     context.load_cert_chain(certfile="/home/giannis-pc/Desktop/BibSearchEngine/src/back/distributed/key/cert.pem",
+    #                             keyfile="/home/giannis-pc/Desktop/BibSearchEngine/src/back/distributed/key/key.pem",
+    #                             password=self.passphrase)
+    #
+    #     with socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0) as sock:
+    #         sock.bind(('localhost', self.node_port))
+    #         sock.listen(5)
+    #         print(f"Node {self.node_id} listening on port {self.node_port}")
+    #
+    #         while True:
+    #             conn, addr = sock.accept()
+    #             print(f"Node {self.node_id}: Connection accepted from {addr}")
+    #             with context.wrap_socket(conn, server_side=True) as sconn:
+    #                 request = sconn.recv(10000).decode()
+    #                 print(f"Node {self.node_id}: Received request: {request[:100]}")
+    #                 response = self.handle_request(request)
+    #                 print(f"Node {self.node_id}: Sending response: {response[:100]}")
+    #                 sconn.sendall(response.encode())
 
     def check_heartbeats(self):
         self.execute_action('heartbeat')

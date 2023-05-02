@@ -6,7 +6,7 @@ from distributed.utils import send_request
 
 def main():
     start_time = time.time()
-    node1_addr = ('localhost', 8083)
+    node1_addr = ('localhost', 9093)
     # Insert key-value pairs
     insert_request = \
         {'action': 'search_ids', 'forwarded': False, 'query': 'test'}
