@@ -45,7 +45,7 @@ def search_ids(query: str):
 def fetch_data(ids: List[int]):
     results = fetch_data_wrapper(ids)
     logging.info(f"Fetched data for {len(results)} documents")
-    return results
+    return results['results']
 
 
 if __name__ == "__main__":

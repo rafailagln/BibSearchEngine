@@ -25,7 +25,10 @@ def process_data(data):
 def split_ids(ids, n):
     result = {i: [] for i in range(1, n + 1)}
     for i, _id in enumerate(ids):
-        result[(i % n) + 1].append(_id)
+        if _id % n == 0:
+            result[n].append(_id)
+        else:
+            result[_id % n].append(_id)
     return result
 
 
@@ -318,7 +321,7 @@ class DistributedNode:
             ids_per_node = split_ids(ids, self.db.node_count)
             for node, value in ids_per_node.items():
                 if node == self.node_id:
-                    results.extend(self.db.get_data(ids))
+                    results.extend(self.db.get_data(value))
                 else:
                     data['forwarded'] = True
                     data['ids'] = value
