@@ -126,7 +126,6 @@ class FastJsonLoader:
         if len(self.metadata) == 0:
             skip_metadata = False
 
-
         for file in os.listdir(self.folder_path):
             skip_file = False
             if file.endswith('.gz'):
@@ -166,7 +165,6 @@ class FastJsonLoader:
                                   f'file. Delete doc_ids.json to rebuild the metadata')
                             skip_file = True
                             break
-
 
                     if not skip_metadata:
                         self.metadata[self.doc_id] = {
