@@ -1,3 +1,4 @@
+import heapq
 import json
 import socket
 import ssl
@@ -29,14 +30,15 @@ def split_ids(ids, n):
 
 
 class DistributedNode:
-    def __init__(self, _node_id, _node_port, _config_file, _folder_path, db_name, index_collection, metadata_collection,
-                 _passphrase='9RXZMGoR6U%kk!H1F36%'):
+    def __init__(self, _node_id, _node_port, _config_file, _folder_path, _max_results, db_name, index_collection,
+                 metadata_collection, _passphrase='9RXZMGoR6U%kk!H1F36%'):
         self.node_id = _node_id
         self.node_port = _node_port
         self.passphrase = _passphrase
         self.folder_path = _folder_path
         self.documents_count = {}
         self.doc_id_sequence = {}
+        self.max_results = _max_results
 
         with open(_config_file, 'r') as f:
             config = json.load(f)
@@ -411,7 +413,9 @@ class DistributedNode:
                     # response = self.forward_request(self.neighbor_nodes[node - 1], data)
                     # TODO: This is overhead. Needs optimization. It returns a string and is needed to convert to JSON.
                     results.update(json.loads(response.get('results'))['results'])
-            return results
+            # return heapq.nlargest(self.max_results, results.items(), key=lambda x: x[1])
+            # return results
+            return heapq.nlargest(self.max_results, results.keys(), key=results.get)
         else:
             return json.dumps({'results': self.engine.search(query)})
 
