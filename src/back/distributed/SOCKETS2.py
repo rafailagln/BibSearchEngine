@@ -4,6 +4,7 @@ import socket
 HOST = '127.0.0.1'
 PORT = 8080
 
+
 def receive_file(filename, conn):
     """Receive a file over the socket."""
     with open(filename, 'wb') as f:
@@ -13,6 +14,7 @@ def receive_file(filename, conn):
             file_data = conn.recv(1024)
 
         print("[+] File received successfully")
+
 
 # Create a socket object
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

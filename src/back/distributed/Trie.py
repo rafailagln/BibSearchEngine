@@ -1,6 +1,5 @@
 from Basics.connection import MongoDBConnection
 
-
 class TrieNode:
     def __init__(self):
         self.children = {}
@@ -136,3 +135,4 @@ class TrieIndex:
                 return True
             else:
                 return False
+
