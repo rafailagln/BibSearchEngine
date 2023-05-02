@@ -84,6 +84,7 @@ class DistributedNode:
                 return json.dumps({'status': 'OK'})
             elif action == 'load_index':
                 self.indexer.create_load_index()
+                self.engine.bm25f.update_total_docs(self.indexer.index_metadata.total_docs)
                 return json.dumps({'status': 'OK'})
             elif action == 'get_data':
                 results = self.handle_get_data(data)
@@ -220,6 +221,8 @@ class DistributedNode:
         self.execute_action('load_index')
         # load index for leader
         self.indexer.create_load_index()
+        # change total docs in bm25f for leader
+        self.engine.bm25f.update_total_docs(self.indexer.index_metadata.total_docs)
 
     def execute_action(self, action, attr1=None, response_callback=None):
         all_connected = False
