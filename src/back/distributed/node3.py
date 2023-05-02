@@ -415,7 +415,7 @@ class DistributedNode:
                     results.update(json.loads(response.get('results'))['results'])
             # return heapq.nlargest(self.max_results, results.items(), key=lambda x: x[1])
             # return results
-            return heapq.nlargest(self.max_results, results.keys(), key=results.get)
+            return list(map(int, heapq.nlargest(self.max_results, results.keys(), key=results.get)))
         else:
             return json.dumps({'results': self.engine.search(query)})
 

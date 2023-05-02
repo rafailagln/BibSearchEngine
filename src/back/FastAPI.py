@@ -1,14 +1,11 @@
 import logging
 import uvicorn
-import time
+import json
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List
-# from Ranker.Search1 import SearchEngine
-from Ranker.Search2 import SearchEngine
-from distributed.fast_json_loader import FastJsonLoader
-from config.read_config import read_config_file
+from distributed.request_wrapper import search_ids_wrapper, fetch_data_wrapper
 
 # TODO: add search_ids and fetch_data in new thread to have non-blocking actions
 # TODO: convert FastAPI to accept request from frond, forward to node, get results
@@ -18,16 +15,6 @@ from config.read_config import read_config_file
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 app = FastAPI()
-
-start_time = time.time()
-documents_per_file = read_config_file('config.ini')
-db = FastJsonLoader('/Users/notaris/Downloads/dataBib/', documents_per_file)
-db.load_documents()
-end_time = time.time()
-time_diff = end_time - start_time
-logging.info(f"Time to load to memory: {time_diff} seconds")
-
-engine = SearchEngine(db, max_results=10000)
 
 # Add the following middleware to add the Access-Control-Allow-Origin header
 origins = [
@@ -44,16 +31,19 @@ app.add_middleware(
 )
 
 
+# TODO: make wrapper function to not call engine and send-receive results like the function
+#  "def send_request_wrapper(node)" in "def execute_action()"
+
 @app.get('/search_ids/{query}', response_model=List[int])
 def search_ids(query: str):
-    ids = engine.search_ids(query)
+    ids = search_ids_wrapper(query)
     logging.info(f"Returned {len(ids)} document IDs")
     return ids
 
 
 @app.post('/fetch_data/', response_model=List[dict])
 def fetch_data(ids: List[int]):
-    results = engine.fetch_data(ids)
+    results = fetch_data_wrapper(ids)
     logging.info(f"Fetched data for {len(results)} documents")
     return results
 
