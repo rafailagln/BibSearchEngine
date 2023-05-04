@@ -12,7 +12,7 @@ from hashlib import sha256
 from Indexer.IndexCreator import IndexCreator
 from Ranker.Search2 import SearchEngine
 from distributed.fast_json_loader import FastJsonLoader
-from distributed.utils import send_request
+from distributed.utils import send_request, receive_message, send_message
 
 # TODO: Check all blocking parts (see example execute_action with new thread)
 # TODO: Send request in chunks like SOCKETS/SOCKETS2
@@ -175,11 +175,13 @@ class DistributedNode:
             while True:
                 conn, addr = sock.accept()
                 print(f"Node {self.node_id}: Connection accepted from {addr}")
-                request = conn.recv(10000).decode()
+                # request = conn.recv(10000).decode()     # receive in chunks
+                request = receive_message(conn)
                 print(f"Node {self.node_id}: Received request: {request[:100]}")
-                response = self.handle_request(request)
+                response = self.handle_request(request)     # --> make a new thread to run handle_request
                 print(f"Node {self.node_id}: Sending response: {response[:100]}")
-                conn.sendall(response.encode())
+                # conn.sendall(response.encode())     # send in chunks # new thread here for sending request
+                send_message(response, conn)
 
     # run with encryption
     # def run(self):
