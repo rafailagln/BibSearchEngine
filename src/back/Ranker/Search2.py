@@ -20,14 +20,14 @@ class SearchEngine:
         final_scored_docs = defaultdict(float)
         cleaned_query = self.cleaner.cleanData(query)
         all_docs = list(self._count_results(cleaned_query))
-
+        searching_docs = all_docs
         # Αdd AND-semantics of query to searching results
         # All words in the text must be present
-        searching_docs = list(self.add_and_semantics(cleaned_query, all_docs))
+        # searching_docs = list(self.add_and_semantics(cleaned_query, all_docs))
 
         # if none document have all words use all documents
-        if len(searching_docs) == 0:
-            searching_docs = all_docs
+        # if len(searching_docs) == 0:
+        #     searching_docs = all_docs
 
         # if exists too many documents, cut them to threshold with BooleanSearch (+ referenced_by)
         print("Searching", len(searching_docs), " number of docs (before boolean)")
@@ -55,8 +55,7 @@ class SearchEngine:
         end_time = time.time()
         time_diff = end_time - end2_time
         print("Time elapsed (search):", time_diff, "seconds")
-        # [doc_id for doc_id, score in self.sort_documents(final_scored_docs)]
-        # return [doc_id for doc_id, score in self.sort_documents(final_scored_docs)]
+
         return final_scored_docs
 
     def search_ids(self, user_query):
