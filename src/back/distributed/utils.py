@@ -52,7 +52,7 @@ def send_request(node_addr, request):
             print(f"Failed to decode JSON response: {e}")
             # return ""
             return None
-
+        # TODO: check if there is error in return, if we should return None or empty []
 # request with SSL encryption
 # def send_request(node_addr, request):
 #     context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
