@@ -66,48 +66,34 @@ class DistributedNode:
         data = json.loads(request)
         action = data.get('action', '')
 
-        with ThreadPoolExecutor(max_workers=1) as executor:
-            if action == 'insert':
-                executor.submit(self.handle_insert, data)
-                return json.dumps({'status': 'Thread started'})
-            elif action == 'search':
-                if data['forwarded']:
-                    self.handle_search(data)
-                    return json.dumps({'status': 'OK'})
-                else:
-                    executor.submit(self.handle_search, data)
-                    return json.dumps({'status': 'Thread started'})
-            elif action == 'delete':
-                executor.submit(self.handle_delete, data)
-                return json.dumps({'status': 'Thread started'})
-            elif action == 'process_data':
-                return self.handle_process_data(data)
-            elif action == 'heartbeat':
-                return json.dumps({'status': 'OK'})
-            elif action == 'load_documents':
-                self.db.load_documents()
-                return json.dumps({'status': 'OK'})
-            elif action == 'load_index':
-                self.indexer.create_load_index()
-                self.engine.bm25f.update_total_docs(self.indexer.index_metadata.total_docs)
-                return json.dumps({'status': 'OK'})
-            elif action == 'get_data':
-                results = self.handle_get_data(data)
-                return json.dumps({'status': 'OK', 'results': results})
-            elif action == 'search_ids':
-                results = self.search_ids(data)
-                return json.dumps({'status': 'OK', 'results': results})
-            elif action == 'set_starting_doc_id':
-                return json.dumps({'doc_id': data.get('doc_id', ''), 'status': 'OK'})
-            elif action == 'insert_docs':
-                self.db.insert_documents(data.get('new_docs', ''))
-                return json.dumps({'status': 'OK'})
-            elif action == 'set_leader':
-                self.current_leader = data['leader']
-                print(f"Node {self.node_id}: Leader updated to {self.current_leader['id']}")
-                return json.dumps({'status': 'OK'})
-            else:
-                return json.dumps({'error': 'Unknown request'})
+        # with ThreadPoolExecutor(max_workers=1) as executor:
+        # executor.submit(self.handle_insert, data) --> change to that
+        if action == 'heartbeat':
+            return json.dumps({'status': 'OK'})
+        elif action == 'load_documents':
+            self.db.load_documents()
+            return json.dumps({'status': 'OK'})
+        elif action == 'load_index':
+            self.indexer.create_load_index()
+            self.engine.bm25f.update_total_docs(self.indexer.index_metadata.total_docs)
+            return json.dumps({'status': 'OK'})
+        elif action == 'get_data':
+            results = self.handle_get_data(data)
+            return json.dumps({'status': 'OK', 'results': results})
+        elif action == 'search_ids':
+            results = self.search_ids(data)
+            return json.dumps({'status': 'OK', 'results': results})
+        elif action == 'set_starting_doc_id':
+            return json.dumps({'doc_id': data.get('doc_id', ''), 'status': 'OK'})
+        elif action == 'insert_docs':
+            self.db.insert_documents(data.get('new_docs', ''))
+            return json.dumps({'status': 'OK'})
+        elif action == 'set_leader':
+            self.current_leader = data['leader']
+            print(f"Node {self.node_id}: Leader updated to {self.current_leader['id']}")
+            return json.dumps({'status': 'OK'})
+        else:
+            return json.dumps({'error': 'Unknown request'})
 
     def handle_process_data(self, data):
         if self.current_leader['id'] != self.node_id:
@@ -354,8 +340,6 @@ class DistributedNode:
                     # response = self.forward_request(self.neighbor_nodes[node - 1], data)
                     # TODO: This is overhead. Needs optimization. It returns a string and is needed to convert to JSON.
                     results.update(json.loads(response.get('results'))['results'])
-            # return heapq.nlargest(self.max_results, results.items(), key=lambda x: x[1])
-            # return results
             return list(map(int, heapq.nlargest(self.max_results, results.keys(), key=results.get)))
         else:
             return json.dumps({'results': self.engine.search(query)})
