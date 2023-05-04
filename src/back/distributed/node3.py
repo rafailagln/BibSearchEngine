@@ -5,7 +5,7 @@ import ssl
 import time
 import threading
 from collections import defaultdict
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor
 
 from hashlib import sha256
 
@@ -314,7 +314,8 @@ class DistributedNode:
                     data['forwarded'] = True
                     data['ids'] = value
 
-                    response = send_request((self.neighbor_nodes[node - 1]['host'], self.neighbor_nodes[node - 1]['port']), {
+                    response = send_request((self.neighbor_nodes[node - 1]['host'],
+                                             self.neighbor_nodes[node - 1]['port']), {
                         'action': 'get_data', 'forwarded': True, 'ids': value
                     })
                     # response = self.forward_request(self.neighbor_nodes[node - 1], data)
@@ -343,6 +344,3 @@ class DistributedNode:
             return list(map(int, heapq.nlargest(self.max_results, results.keys(), key=results.get)))
         else:
             return json.dumps({'results': self.engine.search(query)})
-
-
-
