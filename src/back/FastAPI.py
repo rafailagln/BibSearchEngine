@@ -1,4 +1,6 @@
 import logging
+import time
+
 import uvicorn
 import json
 
@@ -36,15 +38,18 @@ app.add_middleware(
 
 @app.get('/search_ids/{query}', response_model=List[int])
 def search_ids(query: str):
+    start_time = time.time()
     ids = search_ids_wrapper(query)
     logging.info(f"Returned {len(ids)} document IDs")
+    end_time = time.time()
+    logging.info(f"Elapsed time: {end_time - start_time}")
     return ids
 
 
 @app.post('/fetch_data/', response_model=List[dict])
 def fetch_data(ids: List[int]):
     results = fetch_data_wrapper(ids)
-    logging.info(f"Fetched data for {len(results)} documents")
+    logging.info(f"Fetched data for {len(results['results'])} documents")
     return results['results']
 
 
