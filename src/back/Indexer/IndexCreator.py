@@ -1,8 +1,10 @@
 from Indexer.IndexMetadata import Metadata
-from Indexer.Trie import TrieIndex
+
 from Preprocessor.DataCleaner import DataCleaner
 from Basics.connection import MongoDBConnection
 import logging
+
+from distributed.Trie import TrieIndex
 
 TITLE = 0
 ABSTRACT = 1

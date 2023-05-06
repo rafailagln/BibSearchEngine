@@ -203,17 +203,21 @@ class DistributedNode:
         self.execute_action('heartbeat')
         self.send_load_documents()
 
+    # TODO: all leader
     def send_load_documents(self):
+        # load documents for leader
+        load_documents_thread = threading.Thread(target=self.db.load_documents)
+        load_documents_thread.start()
         # send load_documents commands to all other nodes
         self.execute_action('load_documents')
-        # load documents for leader
-        self.db.load_documents()
         self.send_create_index()
 
     def send_create_index(self):
-        self.execute_action('load_index')
         # load index for leader
-        self.indexer.create_load_index()
+        create_load_index_thread = threading.Thread(target=self.indexer.create_load_index)
+        create_load_index_thread.start()
+        self.execute_action('load_index')
+        create_load_index_thread.join()
         # change total docs in bm25f for leader
         self.engine.bm25f.update_total_docs(self.indexer.index_metadata.total_docs)
 

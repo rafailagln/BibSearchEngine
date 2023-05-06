@@ -114,7 +114,7 @@ class BM25F:
     #     time_diff = end_time - start_time
     #     print("Time elapsed (BM25F search):", time_diff, "seconds")
 
-        return score
+    #     return score
 
     def _idf_calculation(self, query_terms):
         idf_dict = defaultdict(float)
