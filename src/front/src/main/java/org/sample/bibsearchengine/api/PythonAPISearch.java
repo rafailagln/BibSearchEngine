@@ -14,6 +14,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
+/**
+ * A class that provides methods for searching using a Python API.
+ */
 public class PythonAPISearch {
 
     private static final String PYTHON_API_URL;
@@ -29,8 +32,14 @@ public class PythonAPISearch {
         }
     }
 
+    /**
+     * Searches for IDs based on the given query.
+     *
+     * @param query the search query
+     * @return a list of search IDs
+     * @throws RuntimeException if an error occurs during the search
+     */
     public static List<Integer> searchIds(String query) {
-
         HttpClient client = HttpClient.newHttpClient();
         String encodedQuery = null;
 
@@ -57,8 +66,14 @@ public class PythonAPISearch {
         }
     }
 
+    /**
+     * Retrieves a list of alternative queries based on the given query.
+     *
+     * @param query the search query
+     * @return a list of alternative queries
+     * @throws RuntimeException if an error occurs during the retrieval of alternative queries
+     */
     public static List<String> alternativeQueries(String query) {
-
         HttpClient client = HttpClient.newHttpClient();
         String encodedQuery = null;
 
@@ -85,6 +100,13 @@ public class PythonAPISearch {
         }
     }
 
+    /**
+     * Converts a JSON string to a list of integers.
+     *
+     * @param body the JSON string
+     * @return a list of integers
+     * @throws RuntimeException if an error occurs during the conversion
+     */
     private static List<Integer> convertJSONToIdList(String body) {
         ObjectMapper mapper = new ObjectMapper();
         try {
@@ -94,6 +116,13 @@ public class PythonAPISearch {
         }
     }
 
+    /**
+     * Converts a JSON string to a list of strings.
+     *
+     * @param body the JSON string
+     * @return a list of strings
+     * @throws RuntimeException if an error occurs during the conversion
+     */
     private static List<String> convertJSONToStringIdList(String body) {
         ObjectMapper mapper = new ObjectMapper();
         try {
