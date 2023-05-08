@@ -2,6 +2,7 @@ import heapq
 import math
 import time
 from collections import defaultdict
+from Indexer.IndexCreator import TITLE, ABSTRACT
 import concurrent.futures
 
 
@@ -41,7 +42,7 @@ class BM25F:
     length_field is a dictionary with doc_ids and fields. For every doc_id it has the number of the length of each field 
     '''
 
-    def bm25f(self, docs, query_terms, fields_weight_dict, length_field, avg_lf, k1=1.2, b=0.75):
+    def bm25f(self, docs, query_terms, fields_weight_dict, length_field, avg_lf):
         score = defaultdict(float)
         start_time = time.time()
         idf = self._idf_calculation(query_terms)
@@ -63,14 +64,17 @@ class BM25F:
                 # not all documents have all fields
                 if length_field[str(doc_id)][str(field)] == 0:
                     continue
-                factor = k1 * (1 - b + b * (length_field[str(doc_id)][str(field)] / avg_lf[str(field)]))
+                factor = self._algorith_parameters()[field]["k1"] * (1 - self._algorith_parameters()[field]["b"] +
+                                                                     self._algorith_parameters()[field]["b"] *
+                                                                     (length_field[str(doc_id)][str(field)] /
+                                                                      avg_lf[str(field)]))
                 # for every term of the query
                 for term in query_terms:
                     tf = fields_weight_dict[field] * tf_c[term][doc_id][field]
                     # if term do not exist in this field of document, we don't have to compute score...
                     if tf == 0:
                         continue
-                    temp_score += idf[term] * ((tf * (k1 + 1)) / (tf + factor))
+                    temp_score += idf[term] * ((tf * (self._algorith_parameters()[field]["k1"] + 1)) / (tf + factor))
 
             score[doc_id] = temp_score
 
@@ -150,6 +154,19 @@ class BM25F:
             if field == _field:
                 counter += 1
         return counter / field_length
+
+    @staticmethod
+    def _algorith_parameters():
+        return {
+            TITLE: {
+                "k1": 1.2,
+                "b": 0.65
+            },
+            ABSTRACT: {
+                "k1": 1.4,
+                "b": 0.2
+            }
+        }
 
 
 class BooleanInformationRetrieval:

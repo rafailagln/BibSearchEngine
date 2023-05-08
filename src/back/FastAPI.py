@@ -32,6 +32,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# TODO: add error page
+# TODO: if a server crash not fail all the system
+# TODO: check if using only multithreading in search_ids is better than using threads at multiple points of code
+
 
 @app.get('/search_ids/{query}', response_model=List[int])
 def search_ids(query: str):

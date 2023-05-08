@@ -1,7 +1,7 @@
 import time
 from collections import defaultdict
 
-from Indexer.IndexCreator import IndexCreator, TITLE, ABSTRACT
+from Indexer.IndexCreator import TITLE, ABSTRACT
 from Preprocessor.DataCleaner import DataCleaner
 from Ranker.RankingAlgorithms import BooleanInformationRetrieval, BM25F
 
@@ -48,14 +48,15 @@ class SearchEngine:
         # add referenced_by to ranking function
         for doc in searching_docs:
             final_score = 0.0
-            final_score += bm25f_scored_docs[doc] * 0.8
-            final_score += self.index_metadata.referenced_by[doc] * 0.2
+            final_score += bm25f_scored_docs[doc] * 0.85
+            final_score += self.index_metadata.referenced_by[doc] * 0.15
             final_scored_docs[doc] = final_score
 
         end_time = time.time()
         time_diff = end_time - end2_time
         print("Time elapsed (search):", time_diff, "seconds")
 
+        # return bm25f_scored_docs
         return final_scored_docs
 
     def search_ids(self, user_query):
@@ -65,9 +66,6 @@ class SearchEngine:
         time_diff = end_time - start_time
         print("Time elapsed (final_results):", time_diff, "seconds")
         return ids
-
-    # def fetch_data(self, ids):
-    #     return self.db.get_data(ids, True)
 
     def _count_results(self, query_terms):
         docs = set()
