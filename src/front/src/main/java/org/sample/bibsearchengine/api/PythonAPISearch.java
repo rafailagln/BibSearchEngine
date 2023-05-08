@@ -4,10 +4,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
@@ -18,9 +21,14 @@ public class PythonAPISearch {
     public static List<Integer> searchIds(String query) {
 
         HttpClient client = HttpClient.newHttpClient();
+        String encodedQuery = null;
+
+        encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8).replaceAll("\\+", "%20");
+
+        System.out.println("encodedQuery: " + encodedQuery);
 
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(PYTHON_API_URL + "search_ids/" + query.replaceAll(" ", "%20")))
+                .uri(URI.create(PYTHON_API_URL + "search_ids/" + encodedQuery))
                 .GET()
                 .build();
 

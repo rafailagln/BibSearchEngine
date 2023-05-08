@@ -2,7 +2,6 @@ import logging
 import time
 import uvicorn
 import concurrent.futures
-import json
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
