@@ -1,18 +1,18 @@
 import heapq
 import json
 import socket
-import ssl
-import time
 import threading
 from collections import defaultdict
-from concurrent.futures import ThreadPoolExecutor
 
 from hashlib import sha256
 
 from Indexer.IndexCreator import IndexCreator
 from Ranker.Search2 import SearchEngine
+from api_requester import APIRequester
+from distributed.config_manager import ConfigManager
 from distributed.fast_json_loader import FastJsonLoader
-from distributed.utils import send_request, receive_message, send_message
+from distributed.utils import send_request, receive_message, send_message, execute_action
+
 
 # TODO: Check all blocking parts (see example execute_action with new thread)
 
@@ -41,18 +41,17 @@ class DistributedNode:
         self.documents_count = {}
         self.doc_id_sequence = {}
         self.max_results = _max_results
-
-        with open(_config_file, 'r') as f:
-            config = json.load(f)
-
-        self.neighbor_nodes = config['nodes']
+        self.config_manager = ConfigManager(_config_file)
+        config = self.config_manager.load_config()
+        self.neighbour_nodes = config['nodes']
+        self.neighbour_nodes[_node_id - 1]['alive'] = True
         self.current_leader = None
         # self.index = TrieIndex()
         # self.index_lock = threading.Lock()
         self.db = FastJsonLoader(folder_path=self.folder_path,
                                  documents_per_file=1000,
                                  node_id=self.node_id,
-                                 node_count=len(self.neighbor_nodes))
+                                 node_count=len(self.neighbour_nodes))
         self.indexer = IndexCreator(self.db,
                                     db_name=db_name,
                                     index_collection=index_collection,
@@ -79,6 +78,12 @@ class DistributedNode:
         elif action == 'get_data':
             results = self.handle_get_data(data)
             return json.dumps({'status': 'OK', 'results': results})
+        elif action == 'update_alive':
+            results = data.get('attr1', '')
+            key = next(iter(results.keys()))
+            self.neighbour_nodes[int(key) - 1]['alive'] = results[key]
+            self.config_manager.save_config(self.neighbour_nodes)
+            return json.dumps({'status': 'OK'})
         elif action == 'search_ids':
             results = self.search_ids(data)
             return json.dumps({'status': 'OK', 'results': results})
@@ -87,6 +92,8 @@ class DistributedNode:
         elif action == 'insert_docs':
             self.db.insert_documents(data.get('new_docs', ''))
             return json.dumps({'status': 'OK'})
+        elif action == 'get_config':
+            return json.dumps({'status': 'OK', "config": self.neighbour_nodes})
         elif action == 'set_leader':
             self.current_leader = data['leader']
             print(f"Node {self.node_id}: Leader updated to {self.current_leader['id']}")
@@ -94,24 +101,14 @@ class DistributedNode:
         else:
             return json.dumps({'error': 'Unknown request'})
 
-    def handle_process_data(self, data):
-        if self.current_leader['id'] != self.node_id:
-            return self.forward_request(self.current_leader, data, True)
-        else:
-            print(f"Node {self.node_id}: Processing data")
-            return json.dumps({
-                'worker_id': self.node_id,
-                'result': process_data(data['data'])
-            })
-
     def get_leader(self):
-        sorted_nodes = sorted(self.neighbor_nodes, key=lambda x: x['id'])
+        sorted_nodes = sorted(self.neighbour_nodes, key=lambda x: x['id'])
         return sorted_nodes[0]
 
     def update_alive_nodes(self):
         alive_nodes = []
 
-        for _node in self.neighbor_nodes:
+        for _node in self.neighbour_nodes:
             if _node['id'] == self.node_id:
                 alive_nodes.append(_node)
                 continue
@@ -129,7 +126,7 @@ class DistributedNode:
         return alive_nodes
 
     def notify_nodes_of_leader(self, leader):
-        for _node in self.neighbor_nodes:
+        for _node in self.neighbour_nodes:
             if _node['id'] != self.node_id:
                 try:
                     send_request((_node['host'], _node['port']), {
@@ -144,13 +141,34 @@ class DistributedNode:
 
     # run without SSL encryption
     def run(self):
-        with open("config.json", "r") as f:
-            config = json.load(f)
-            nodes = config["nodes"]
-
-        if nodes[self.node_id - 1]['leader']:
+        if self.neighbour_nodes[self.node_id - 1]['leader']:
             heartbeat_thread = threading.Thread(target=self.check_heartbeats)
             heartbeat_thread.start()
+        elif not self.neighbour_nodes[self.node_id - 1]['first_boot']:
+
+            # get config from other nodes
+            response = None
+            for node in self.neighbour_nodes:
+                if self.node_id != node['id']:
+                    response = send_request((node['host'], node['port']), {
+                        'action': 'get_config'
+                    })
+                    if response.get('status') == 'OK':
+                        self.neighbour_nodes = response['config']
+                        break
+            # Start db and index
+            self.db.load_documents()
+            self.indexer.create_load_index()
+            self.engine.bm25f.update_total_docs(self.indexer.index_metadata.total_docs)
+            # inform other nodes for recovery
+            self.neighbour_nodes[self.node_id - 1]['alive'] = True
+            self.config_manager.save_config(self.neighbour_nodes)
+            execute_action('update_alive', self.neighbour_nodes, self.node_id, {self.node_id: True})
+
+        # Update first_boot to false. If server crashes when restart
+        # it will perform additional actions
+        self.neighbour_nodes[self.node_id - 1]['first_boot'] = False
+        self.config_manager.save_config(self.neighbour_nodes)
 
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0) as sock:
             sock.bind(('localhost', self.node_port))
@@ -200,7 +218,7 @@ class DistributedNode:
     #                 sconn.sendall(response.encode())
 
     def check_heartbeats(self):
-        self.execute_action('heartbeat')
+        execute_action('heartbeat', self.neighbour_nodes, self.node_id)
         self.send_load_documents()
 
     # TODO: all leader
@@ -209,66 +227,68 @@ class DistributedNode:
         load_documents_thread = threading.Thread(target=self.db.load_documents)
         load_documents_thread.start()
         # send load_documents commands to all other nodes
-        self.execute_action('load_documents')
+        execute_action('load_documents', self.neighbour_nodes, self.node_id)
         self.send_create_index()
 
     def send_create_index(self):
         # load index for leader
         create_load_index_thread = threading.Thread(target=self.indexer.create_load_index)
         create_load_index_thread.start()
-        self.execute_action('load_index')
+        execute_action('load_index', self.neighbour_nodes, self.node_id)
         create_load_index_thread.join()
         # change total docs in bm25f for leader
         self.engine.bm25f.update_total_docs(self.indexer.index_metadata.total_docs)
 
-    def execute_action(self, action, attr1=None, response_callback=None):
-        all_connected = False
-        successful_nodes = list()
-
-        def send_request_wrapper(node):
-            try:
-                if attr1 is None:
-                    response = send_request((node['host'], node['port']), {
-                        'action': action
-                    })
-                else:
-                    response = send_request((node['host'], node['port']), {
-                        'action': action,
-                        'attr1': attr1[node['id']]
-                    })
-                if response_callback is not None:
-                    response_callback(response, node)
-                if response.get('status') == 'OK':
-                    successful_nodes.append(node)
-                return response.get('status') == 'OK'
-
-            except (ConnectionError, TimeoutError, OSError) as e:
-                print(e)
-                return False
-
-        with ThreadPoolExecutor(max_workers=len(self.neighbor_nodes)) as executor:
-            while not all_connected:
-                all_ok = True
-                threads = []
-                for _node in self.neighbor_nodes:
-                    if _node['id'] != self.node_id and _node not in successful_nodes:
-                        t = executor.submit(send_request_wrapper, _node)
-                        threads.append(t)
-                for t in threads:
-                    if not t.result():
-                        all_ok = False
-                        break
-                if action == 'heartbeat':
-                    time.sleep(0.5)
-                if all_ok:
-                    all_connected = True
-                    self.current_leader = self.neighbor_nodes[int(self.node_id) - 1]
-        print(f"Action: {action} executed!")
+    # def execute_action(self, action, attr1=None, response_callback=None):
+    #     all_connected = False
+    #     successful_nodes = list()
+    #
+    #     def send_request_wrapper(node):
+    #         try:
+    #             if attr1 is None:
+    #                 response = send_request((node['host'], node['port']), {
+    #                     'action': action
+    #                 })
+    #             else:
+    #                 response = send_request((node['host'], node['port']), {
+    #                     'action': action,
+    #                     'attr1': attr1
+    #                 })
+    #             if response_callback is not None:
+    #                 response_callback(response, node)
+    #             if response.get('status') == 'OK':
+    #                 successful_nodes.append(node)
+    #             return response.get('status') == 'OK'
+    #
+    #         except (ConnectionError, TimeoutError, OSError) as e:
+    #             print(e)
+    #             return False
+    #
+    #     with ThreadPoolExecutor(max_workers=len(self.neighbor_nodes)) as executor:
+    #         while not all_connected:
+    #             all_ok = True
+    #             threads = []
+    #             for _node in self.neighbor_nodes:
+    #                 if not _node['alive']:
+    #                     continue
+    #                 if _node['id'] != self.node_id and _node not in successful_nodes:
+    #                     t = executor.submit(send_request_wrapper, _node)
+    #                     threads.append(t)
+    #             for t in threads:
+    #                 if not t.result():
+    #                     all_ok = False
+    #                     break
+    #             if action == 'heartbeat':
+    #                 time.sleep(0.5)
+    #             if all_ok:
+    #                 all_connected = True
+    #                 self.current_leader = self.neighbor_nodes[int(self.node_id) - 1]
+    #     print(f"Action: {action} executed!")
 
     def get_shard(self, key):
-        num_shards = len(self.neighbor_nodes)
+        num_shards = len(self.neighbour_nodes)
         shard_id = int(sha256(key.encode()).hexdigest(), 16) % num_shards
-        return self.neighbor_nodes[shard_id]
+        return self.neighbour_nodes[shard_id]
 
     def forward_request(self, node, data, to_leader=False):
         node_addr = (node['host'], node['port'])
@@ -279,7 +299,7 @@ class DistributedNode:
         except Exception as e:
             if to_leader:
                 print(f"Node {self.node_id}: Failed to forward request to leader {node['id']}. {e}")
-                self.neighbor_nodes = self.update_alive_nodes()
+                self.neighbour_nodes = self.update_alive_nodes()
                 leader = self.get_leader()
                 self.current_leader = leader
                 self.notify_nodes_of_leader(leader)
@@ -302,7 +322,7 @@ class DistributedNode:
     def update_config(self, _config_file):
         with open(_config_file, 'w') as f:
             config = json.load(f)
-            config['nodes'] = self.neighbor_nodes
+            config['nodes'] = self.neighbour_nodes
             json.dump(config, f, indent=4)
 
     # TODO: use forward_request function instead of sending plain request
@@ -312,19 +332,33 @@ class DistributedNode:
             results = []
             ids_per_node = split_ids(ids, self.db.node_count)
             for node, value in ids_per_node.items():
+                # TODO: THIS IS STUPID. MUST CHANGE!
+                if isinstance(node, dict):
+                    node = node['id']
+                if not self.neighbour_nodes[node - 1]['alive']:
+                    continue
+
                 if node == self.node_id:
                     results.extend(self.db.get_data(value))
                 else:
                     data['forwarded'] = True
                     data['ids'] = value
+                    try:
+                        response = send_request((self.neighbour_nodes[node - 1]['host'],
+                                                 self.neighbour_nodes[node - 1]['port']), {
+                                                    'action': 'get_data', 'forwarded': True, 'ids': value
+                                                })
+                        # response = self.forward_request(self.neighbor_nodes[node - 1], data)
+                        # TODO: This is overhead. Needs optimization. It returns a string and is needed to convert to JSON.
+                        results.extend(json.loads(response.get('results'))['results'])
+                    except socket.error:
+                        self.neighbour_nodes[self.neighbour_nodes[node - 1]]['alive'] = False
+                        self.config_manager.save_config(self.neighbour_nodes)
+                        execute_action('update_alive', self.neighbour_nodes, self.node_id, {node['id']: False})
+                        api_requester = APIRequester("http://localhost:5000", "testuser", "testpass")
+                        api_response = api_requester.post_update_config_endpoint(self.neighbour_nodes)
+                        print('Update api config response:', api_response)
 
-                    response = send_request((self.neighbor_nodes[node - 1]['host'],
-                                             self.neighbor_nodes[node - 1]['port']), {
-                        'action': 'get_data', 'forwarded': True, 'ids': value
-                    })
-                    # response = self.forward_request(self.neighbor_nodes[node - 1], data)
-                    # TODO: This is overhead. Needs optimization. It returns a string and is needed to convert to JSON.
-                    results.extend(json.loads(response.get('results'))['results'])
             return results
         else:
             return json.dumps({'results': self.db.get_data(ids)})
@@ -333,18 +367,30 @@ class DistributedNode:
         query = data.get('query', '')
         if not data.get('forwarded'):
             results = defaultdict(float)
-            for node in self.neighbor_nodes:
+            for node in self.neighbour_nodes:
+                if not node['alive']:
+                    continue
+
                 if node['id'] == self.node_id:
                     results.update(self.engine.search(query))
                 else:
                     data['forwarded'] = True
-                    response = send_request(
-                        (node['host'], node['port']), {
-                            'action': 'search_ids', 'forwarded': True, 'query': query
-                        })
-                    # response = self.forward_request(self.neighbor_nodes[node - 1], data)
-                    # TODO: This is overhead. Needs optimization. It returns a string and is needed to convert to JSON.
-                    results.update(json.loads(response.get('results'))['results'])
+                    try:
+                        response = send_request(
+                            (node['host'], node['port']), {
+                                'action': 'search_ids', 'forwarded': True, 'query': query
+                            })
+
+                        # response = self.forward_request(self.neighbor_nodes[node - 1], data)
+                        # TODO: This is overhead. Needs optimization. It returns a string and is needed to convert to JSON.
+                        results.update(json.loads(response.get('results'))['results'])
+                    except socket.error:
+                        self.neighbour_nodes[node['id'] - 1]['alive'] = False
+                        self.config_manager.save_config(self.neighbour_nodes)
+                        execute_action('update_alive', self.neighbour_nodes, self.node_id, {node['id']: False})
+                        api_requester = APIRequester("http://127.0.0.1:5000", "testuser", "testpass")
+                        api_response = api_requester.post_update_config_endpoint(self.neighbour_nodes)
+                        print('Update api config response:', api_response)
             return list(map(int, heapq.nlargest(self.max_results, results.keys(), key=results.get)))
         else:
             return json.dumps({'results': self.engine.search(query)})

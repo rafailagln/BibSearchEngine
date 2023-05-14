@@ -3,8 +3,9 @@ import json
 import os
 import socket
 import struct
-import ssl
 import sys
+import time
+from concurrent.futures import ThreadPoolExecutor
 
 
 def count_documents_in_files(folder_path):
@@ -42,9 +43,13 @@ def count_documents_in_files(folder_path):
 
 def send_request(node_addr, request):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.connect(node_addr)
-        send_message(json.dumps(request), sock)
-        response = receive_message(sock)
+        try:
+            sock.connect(node_addr)
+            send_message(json.dumps(request), sock)
+            response = receive_message(sock)
+        except socket.error as e:
+            # Re-raise the exception to propagate it further
+            raise e
 
         try:
             return json.loads(response)
@@ -70,6 +75,51 @@ def send_request(node_addr, request):
 #                 print(f"Failed to decode JSON response: {e}")
 #                 return None
 
+
+def execute_action(action, neighbor_nodes, node_id, attr1=None, response_callback=None):
+    all_connected = False
+    successful_nodes = list()
+
+    def send_request_wrapper(node):
+        try:
+            if attr1 is None:
+                response = send_request((node['host'], node['port']), {
+                    'action': action
+                })
+            else:
+                response = send_request((node['host'], node['port']), {
+                    'action': action,
+                    'attr1': attr1
+                })
+            if response_callback is not None:
+                response_callback(response, node)
+            if response.get('status') == 'OK':
+                successful_nodes.append(node)
+            return response.get('status') == 'OK'
+
+        except (ConnectionError, TimeoutError, OSError) as e:
+            print(e)
+            return False
+
+    with ThreadPoolExecutor(max_workers=len(neighbor_nodes)) as executor:
+        while not all_connected:
+            all_ok = True
+            threads = []
+            for _node in neighbor_nodes:
+                if not _node['alive']:
+                    continue
+                if _node['id'] != node_id and _node not in successful_nodes:
+                    t = executor.submit(send_request_wrapper, _node)
+                    threads.append(t)
+            for t in threads:
+                if not t.result():
+                    all_ok = False
+                    break
+            if action == 'heartbeat':
+                time.sleep(0.5)
+            if all_ok:
+                all_connected = True
+    print(f"Action: {action} executed!")
 
 def send_message(message, conn):
     """Send a message over the socket."""
