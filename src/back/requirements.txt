@@ -1,6 +1,5 @@
 configparser
 pymongo
-gzip
 socket
 struct
 time
