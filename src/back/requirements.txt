@@ -1,16 +1,6 @@
 configparser
 pymongo
-socket
 struct
-time
 concurrent.futures
 argparse
-heapq
-collections
-hashlib
-threading
 nltk
-string
-re
-logging
-math
