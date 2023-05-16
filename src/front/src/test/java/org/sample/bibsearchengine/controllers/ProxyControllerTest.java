@@ -49,7 +49,7 @@ class ProxyControllerTest {
         when(restTemplate.exchange(Mockito.anyString(), Mockito.eq(HttpMethod.POST), Mockito.eq(requestEntity), Mockito.eq(String.class)))
                 .thenThrow(new HttpClientErrorException(HttpStatus.FORBIDDEN, "403 Forbidden"));
 
-        HttpClientErrorException exception = assertThrows(HttpClientErrorException.class, () -> {
+        HttpClientErrorException.Forbidden exception = assertThrows(HttpClientErrorException.Forbidden.class, () -> {
             proxyController.fetchDataForIds(ids);
         });
 
