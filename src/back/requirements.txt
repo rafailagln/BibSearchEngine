@@ -1,4 +1,4 @@
-configparser
 pymongo
-concurrent.futures
 nltk
+fastapi
+uvicorn
