@@ -1,6 +1,4 @@
 configparser
 pymongo
-struct
 concurrent.futures
-argparse
 nltk
