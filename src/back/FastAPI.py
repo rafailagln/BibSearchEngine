@@ -82,6 +82,14 @@ async def read_protected_endpoint(request: Request, username: str = Depends(get_
     request_wrapper.neighbour_nodes = data
     return {'status': 'OK'}
 
+@app.get("/api/logs/{node_id}")
+def read_logs(node_id: int, _: str = Depends(get_current_username)):
+    # For simplicity, we're just returning dummy data. Replace this with actual log data.
+    dummy_log = {
+        "log_data": f"Dummy logs for node {node_id}. Timestamp: {time.ctime()}"
+    }
+    return dummy_log
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=5000)

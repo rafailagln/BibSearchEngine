@@ -27,7 +27,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(antMatcher("/search")).permitAll()
                         .requestMatchers(antMatcher("/index")).permitAll()
+                        .requestMatchers(antMatcher("/admin")).permitAll()
                         .requestMatchers(antMatcher("/api/fetch_data")).permitAll()
+                        .requestMatchers(antMatcher("/api/update")).permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(withDefaults());
