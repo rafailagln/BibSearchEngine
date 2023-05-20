@@ -3,25 +3,32 @@ function createNodeBox(node) {
     nodeBox.id = "node-" + node.id;
     nodeBox.classList.add("rounded", "p-3", "bg-light", "border", "node-box");
 
+    let flexContainer = document.createElement("div");
+    flexContainer.style.display = "flex";
+    flexContainer.style.justifyContent = "space-between";
+    flexContainer.style.alignItems = "center";
+
     let title = document.createElement("h5");
+    title.style.margin = "0";  // Reset margin
     title.innerText = "Node " + node.id;
-    nodeBox.appendChild(title);
 
     let status = document.createElement("p");
+    status.style.margin = "0";  // Reset margin
     let statusCircle = document.createElement("span");
     statusCircle.classList.add("status-circle");
     statusCircle.style.backgroundColor = node.alive ? "green" : "red";
     status.appendChild(statusCircle);
-    status.appendChild(document.createTextNode(" " + (node.alive ? "Online" : "Offline")));
-    nodeBox.appendChild(status);
 
-    let host = document.createElement("p");
-    host.innerText = "Host: " + node.host;
-    nodeBox.appendChild(host);
+    let statusText = document.createElement("span");
+    statusText.classList.add("status-text");  // This is your new class
+    statusText.appendChild(document.createTextNode(" " + node.host + ":" + node.port));
+    // statusText.appendChild(document.createTextNode(" " + (node.alive ? "Online" : "Offline") + " (" + node.host + ":" + node.port + ")"));
+    status.appendChild(statusText);
 
-    let port = document.createElement("p");
-    port.innerText = "Port: " + node.port;
-    nodeBox.appendChild(port);
+    flexContainer.appendChild(title);
+    flexContainer.appendChild(status);
+
+    nodeBox.appendChild(flexContainer);
 
     let logs = document.createElement("pre");
     logs.style.display = 'none';
@@ -29,13 +36,8 @@ function createNodeBox(node) {
 
     nodeBox.addEventListener("click", function(event) {
         event.stopPropagation();
-        let activeBox = document.querySelector('.node-box.active');
-        if(activeBox && activeBox !== this) {
-            let activeLogs = activeBox.querySelector('pre');
-            activeLogs.style.display = 'none';
-            activeBox.classList.remove('active');
-        }
         this.classList.toggle('active');
+        let logs = this.querySelector('pre');
         if(this.classList.contains('active')) {
             axios.defaults.baseURL = 'http://127.0.0.1:5000';
             axios.get('/api/logs/' + node.id, {
