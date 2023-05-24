@@ -47,10 +47,49 @@ public class PythonAPISearch {
         }
     }
 
+    public static List<String> alternativeQueries(String query) {
+
+        HttpClient client = HttpClient.newHttpClient();
+        String encodedQuery = null;
+
+        encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8).replaceAll("\\+", "%20");
+
+        System.out.println("encodedQuery: " + encodedQuery);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(PYTHON_API_URL + "alternate_queries/" + encodedQuery))
+                .GET()
+                .build();
+
+        HttpResponse<String> response;
+        try {
+            response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        int statusCode = response.statusCode();
+        if (statusCode == 200) {
+            String body = response.body();
+            return convertJSONToStringIdList(body);
+        } else {
+            return null;
+        }
+    }
+
     private static List<Integer> convertJSONToIdList(String body) {
         ObjectMapper mapper = new ObjectMapper();
         try {
             return Arrays.asList(mapper.readValue(body, Integer[].class));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static List<String> convertJSONToStringIdList(String body) {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            return Arrays.asList(mapper.readValue(body, String[].class));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

@@ -66,6 +66,11 @@ def search_ids(query: str):
     return ids['results']
 
 
+@app.get("/alternate_queries/{query}", response_model=List[str])
+def alternate_queries(query: str):
+    return ['test1', 'test2', 'test3', 'test4', 'test5']
+
+
 @app.post('/fetch_data/', response_model=List[dict])
 def fetch_data(ids: List[int]):
     with concurrent.futures.ThreadPoolExecutor() as executor:
