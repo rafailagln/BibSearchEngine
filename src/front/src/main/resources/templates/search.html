@@ -21,6 +21,11 @@
             <p hidden class="doc_id" th:text="${result}" ></p>
         </li>
     </ul>
+    <ul id="alternativeQueries" style="max-width: 700px">
+        <li th:each="query : ${alternativeQueries}">
+            <p hidden class="doc_id" th:text="${query}" ></p>
+        </li>
+    </ul>
     <nav aria-label="Page navigation">
         <ul id="pagination" class="pagination justify-content-center">
             <li class="page-item disabled">

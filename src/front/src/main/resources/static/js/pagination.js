@@ -1,5 +1,7 @@
 const resultsList = document.getElementById("resultsList");
+const alternativeQueries = document.getElementById("alternativeQueries");
 let finalIds = null;
+let alternateQueriesFinalList = null;
 const pagination = document.getElementById("pagination");
 const resultsPerPage = 10;
 const totalResults = resultsList.childElementCount;
@@ -8,9 +10,12 @@ let currentPage = 1;
 
 async function displayResults(page) {
     finalIds = finalIds || resultsList.cloneNode(true);
+    alternateQueriesFinalList = alternateQueriesFinalList || alternativeQueries.cloneNode(true);
     const idsToFetch = getIdsToFetch(page);
     const results = await fetchDataForIds(idsToFetch);
+    const alternativeQueriesList = getAlternativeQueries(alternateQueriesFinalList);
     displayFetchedData(results);
+    displayAlternateQueries(alternativeQueriesList)
     handlePagination();
 }
 
@@ -177,6 +182,38 @@ function displayFetchedData(fetchedData) {
         // Add the resultElement to the resultsList
         resultsList.appendChild(resultElement);
     });
+}
+
+function displayAlternateQueries(altQueries) {
+    // Clear the previous content
+    alternativeQueries.innerHTML = '';
+
+    // Create a new unordered list element
+    const ul = document.createElement('ul');
+    ul.className = "list-group";
+
+    // Add each alternate query to the list
+    altQueries.forEach(query => {
+        const li = document.createElement('li');
+        li.className = "list-group-item";
+        li.innerText = query;
+        ul.appendChild(li);
+    });
+
+    // Append the list to the search results page
+    alternativeQueries.appendChild(ul);
+}
+
+
+function getAlternativeQueries(listElement) {
+    var listItems = listElement.getElementsByTagName("li");
+    var docIds = [];
+    for (var i = 0; i < listItems.length; i++) {
+        var hiddenParagraph = listItems[i].getElementsByClassName("doc_id")[0];
+        var docId = hiddenParagraph.textContent;
+        docIds.push(docId);
+    }
+    return docIds;
 }
 
 // Function to truncate text after a specified number of words

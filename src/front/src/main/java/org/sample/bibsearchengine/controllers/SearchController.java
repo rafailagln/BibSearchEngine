@@ -28,7 +28,9 @@ public class SearchController {
     @PostMapping("/search")
     public String searchResults(@ModelAttribute("searchQuery") SearchQuery searchQuery, Model model) {
         List<Integer> results = searchService.searchIds(searchQuery.getQuery());
+        List<String> alternativeQueries = searchService.alternativeQueries(searchQuery.getQuery());
         model.addAttribute("results", results);
+        model.addAttribute("alternativeQueries", alternativeQueries);
         return "search";
     }
 
