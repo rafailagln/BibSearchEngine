@@ -24,7 +24,7 @@ public class ProxyController {
 
     private ResponseEntity<String> callExternalApi(List<String> ids) {
         RestTemplate restTemplate = new RestTemplate();
-        String externalApiUrl = "http://127.0.0.1:5000/fetch_data/";
+        String externalApiUrl = "http://127.0.0.1:8000/fetch_data/";
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
