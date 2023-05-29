@@ -2,7 +2,7 @@ import heapq
 import math
 import time
 from collections import defaultdict
-from Indexer.IndexCreator import TITLE, ABSTRACT
+from indexer.index_creator import TITLE, ABSTRACT
 import concurrent.futures
 
 

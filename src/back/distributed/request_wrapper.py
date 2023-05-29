@@ -17,7 +17,7 @@ class RequestWrapper:
 
     def _get_next_node(self):
         self._index = (self._index + 1) % len(self.neighbour_nodes)
-        return self.neighbour_nodes[self._index]
+        return self.neighbour_nodes[self._index - 1]
 
     def search_ids(self, query):
         i = 1

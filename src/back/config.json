@@ -5,7 +5,7 @@
             "host": "localhost",
             "port": 9091,
             "leader": true,
-            "first_boot": false,
+            "first_boot": true,
             "alive": true
         },
         {
@@ -13,7 +13,7 @@
             "host": "localhost",
             "port": 9092,
             "leader": false,
-            "first_boot": false,
+            "first_boot": true,
             "alive": true
         },
         {

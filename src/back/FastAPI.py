@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from typing import List
 
+from configurations.ini_config import IniConfig
 from distributed.config_manager import ConfigManager
 from distributed.request_wrapper import RequestWrapper
 
@@ -20,13 +21,14 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %
 
 app = FastAPI()
 security = HTTPBasic()
-config_manager = ConfigManager("/Users/notaris/git/BibSearchEngine/src/back/config.json")
-request_wrapper = RequestWrapper("/Users/notaris/git/BibSearchEngine/src/back/config.json")
+config_manager = ConfigManager("./config.json")
+request_wrapper = RequestWrapper("./config.json")
+ini_config = IniConfig('./config.ini')
 
 # Add the following middleware to add the Access-Control-Allow-Origin header
 origins = [
-    "http://localhost",
-    "http://localhost:8080",
+    ini_config.get_property('API', 'origin1'),
+    ini_config.get_property('API', 'origin2'),
 ]
 
 app.add_middleware(
@@ -43,8 +45,8 @@ app.add_middleware(
 # TODO: check if using only multithreading in search_ids is better than using threads at multiple points of code
 
 def get_current_username(credentials: HTTPBasicCredentials = Depends(security)):
-    correct_username = "testuser"
-    correct_password = "testpass"
+    correct_username = ini_config.get_property('API', 'username')
+    correct_password = ini_config.get_property('API', 'password')
     if credentials.username != correct_username or credentials.password != correct_password:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -81,7 +83,7 @@ def fetch_data(ids: List[int]):
 
 
 @app.post("/update_config")
-async def read_protected_endpoint(request: Request, username: str = Depends(get_current_username)):
+async def read_protected_endpoint(request: Request, _: str = Depends(get_current_username)):
     data = await request.json()
     config_manager.save_config(data)
     request_wrapper.neighbour_nodes = data
@@ -89,4 +91,4 @@ async def read_protected_endpoint(request: Request, username: str = Depends(get_
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=5000)
+    uvicorn.run(app, host=ini_config.get_property('API', 'host'), port=int(ini_config.get_property('API', 'port')))

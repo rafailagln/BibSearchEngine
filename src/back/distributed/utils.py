@@ -7,6 +7,10 @@ import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
 
+from configurations.ini_config import IniConfig
+
+ini_config = IniConfig('../config.ini')
+
 
 def count_documents_in_files(folder_path):
     total_documents = 0
@@ -50,30 +54,14 @@ def send_request(node_addr, request):
         except socket.error as e:
             # Re-raise the exception to propagate it further
             raise e
+        finally:
+            sock.close()
 
         try:
             return json.loads(response)
         except json.JSONDecodeError as e:
             print(f"Failed to decode JSON response: {e}")
-            # return ""
             return None
-        # TODO: check if there is error in return, if we should return None or empty []
-# request with SSL encryption
-# def send_request(node_addr, request):
-#     context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
-#     context.load_verify_locations('/home/giannis-pc/Desktop/BibSearchEngine/src/back/distributed/key/cert.pem')
-#
-#     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-#         with context.wrap_socket(sock, server_hostname='localhost') as ssock:
-#             ssock.connect(node_addr)
-#             ssock.sendall(json.dumps(request).encode())
-#             response = ssock.recv(10000).decode()
-#
-#             try:
-#                 return json.loads(response)
-#             except json.JSONDecodeError as e:
-#                 print(f"Failed to decode JSON response: {e}")
-#                 return None
 
 
 def execute_action(action, neighbor_nodes, node_id, attr1=None, response_callback=None):
@@ -120,6 +108,7 @@ def execute_action(action, neighbor_nodes, node_id, attr1=None, response_callbac
             if all_ok:
                 all_connected = True
     print(f"Action: {action} executed!")
+
 
 def send_message(message, conn):
     """Send a message over the socket."""
