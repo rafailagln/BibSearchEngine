@@ -20,8 +20,8 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %
 
 app = FastAPI()
 security = HTTPBasic()
-config_manager = ConfigManager("./config.json")
-request_wrapper = RequestWrapper("./config.json")
+config_manager = ConfigManager("/Users/notaris/git/BibSearchEngine/src/back/config.json")
+request_wrapper = RequestWrapper("/Users/notaris/git/BibSearchEngine/src/back/config.json")
 
 # Add the following middleware to add the Access-Control-Allow-Origin header
 origins = [
@@ -89,4 +89,4 @@ async def read_protected_endpoint(request: Request, username: str = Depends(get_
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run(app, host="127.0.0.1", port=5000)

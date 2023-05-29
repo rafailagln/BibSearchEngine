@@ -21,7 +21,7 @@
             "host": "localhost",
             "port": 9093,
             "leader": false,
-            "first_boot": false,
+            "first_boot": true,
             "alive": true
         }
     ]
