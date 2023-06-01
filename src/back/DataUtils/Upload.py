@@ -5,8 +5,8 @@ from Basics.connection import MongoDBConnection
 
 with MongoDBConnection() as conn:
     mongo = conn.get_connection()
-    papers_big = mongo.get_database('M151').get_collection('Papers_big')
-    papers_big_lookup = mongo.get_database('M151').get_collection('Papers_big_lookup')
+    papers_big = mongo.get_database('M151Dev').get_collection('Papers_big')
+    papers_big_lookup = mongo.get_database('M151Dev').get_collection('Papers_big_lookup')
 
     json_dir_path = "/path/to/folder/"
 
