@@ -2,6 +2,27 @@ import heapq
 import math
 import time
 from collections import defaultdict
+from indexer.index_creator import TITLE, ABSTRACT
+import concurrent.futures
+
+
+# def compute_doc_score(docs, query_terms, fields_weight_dict, length_field, avg_lf, idf, tf_c, k1, b):
+#     score = defaultdict(float)
+#     for doc_id in docs:
+#         temp_score = 0.0
+#         for field in fields_weight_dict:
+#             if length_field[str(doc_id)][str(field)] == 0:
+#                 continue
+#             factor = k1 * (1 - b + b * (length_field[str(doc_id)][str(field)] / avg_lf[str(field)]))
+#             for term in query_terms:
+#                 tf = fields_weight_dict[field] * tf_c[term][doc_id][field]
+#                 if tf == 0:
+#                     continue
+#                 temp_score += idf[term] * ((tf * (k1 + 1)) / (tf + factor))
+#
+#         score[doc_id] = temp_score
+#
+#     return score
 
 
 class BM25F:
@@ -21,7 +42,7 @@ class BM25F:
     length_field is a dictionary with doc_ids and fields. For every doc_id it has the number of the length of each field 
     '''
 
-    def bm25f(self, docs, query_terms, fields_weight_dict, length_field, avg_lf, k1=1.2, b=0.75):
+    def bm25f(self, docs, query_terms, fields_weight_dict, length_field, avg_lf):
         score = defaultdict(float)
         start_time = time.time()
         idf = self._idf_calculation(query_terms)
@@ -43,14 +64,17 @@ class BM25F:
                 # not all documents have all fields
                 if length_field[str(doc_id)][str(field)] == 0:
                     continue
-                factor = k1 * (1 - b + b * (length_field[str(doc_id)][str(field)] / avg_lf[str(field)]))
+                factor = self._algorith_parameters()[field]["k1"] * (1 - self._algorith_parameters()[field]["b"] +
+                                                                     self._algorith_parameters()[field]["b"] *
+                                                                     (length_field[str(doc_id)][str(field)] /
+                                                                      avg_lf[str(field)]))
                 # for every term of the query
                 for term in query_terms:
                     tf = fields_weight_dict[field] * tf_c[term][doc_id][field]
                     # if term do not exist in this field of document, we don't have to compute score...
                     if tf == 0:
                         continue
-                    temp_score += idf[term] * ((tf * (k1 + 1)) / (tf + factor))
+                    temp_score += idf[term] * ((tf * (self._algorith_parameters()[field]["k1"] + 1)) / (tf + factor))
 
             score[doc_id] = temp_score
 
@@ -59,6 +83,42 @@ class BM25F:
         print("Time elapsed (BM25F search):", time_diff, "seconds")
 
         return score
+
+    # def bm25f(self, docs, query_terms, fields_weight_dict, length_field, avg_lf, k1=1.2, b=0.75, chunk_size=2000):
+    #     score = defaultdict(float)
+    #     start_time = time.time()
+    #     idf = self._idf_calculation(query_terms)
+    #     end_time = time.time()
+    #     time_diff = end_time - start_time
+    #     print("Time elapsed (idf calculation):", time_diff, "seconds")
+    #
+    #     start_time = time.time()
+    #     tf_c = self._tf_field_calculation(query_terms)
+    #     end_time = time.time()
+    #     time_diff = end_time - start_time
+    #     print("Time elapsed (TF_FIELD):", time_diff, "seconds")
+    #
+    #     # Split the list of documents into chunks
+    #     chunks = [docs[i:i + chunk_size] for i in range(0, len(docs), chunk_size)]
+    #
+    #     with concurrent.futures.ThreadPoolExecutor() as executor:
+    #         futures = []
+    #         for chunk in chunks:
+    #             future = executor.submit(compute_doc_score, chunk, query_terms, fields_weight_dict, length_field,
+    #                                      avg_lf, idf, tf_c, k1, b)
+    #             print(f"Sending chunk")
+    #             futures.append(future)
+    #
+    #         for future in concurrent.futures.as_completed(futures):
+    #             chunk_score = future.result()
+    #             print(f"Got result chunk")
+    #             score.update(chunk_score)
+    #
+    #     end_time = time.time()
+    #     time_diff = end_time - start_time
+    #     print("Time elapsed (BM25F search):", time_diff, "seconds")
+
+    #     return score
 
     def _idf_calculation(self, query_terms):
         idf_dict = defaultdict(float)
@@ -94,6 +154,19 @@ class BM25F:
             if field == _field:
                 counter += 1
         return counter / field_length
+
+    @staticmethod
+    def _algorith_parameters():
+        return {
+            TITLE: {
+                "k1": 1.2,
+                "b": 0.65
+            },
+            ABSTRACT: {
+                "k1": 1.4,
+                "b": 0.2
+            }
+        }
 
 
 class BooleanInformationRetrieval:

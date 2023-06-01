@@ -1,6 +1,6 @@
-package org.sample.bibsearchengine.entities;
-
-public enum AppUserRole {
-    USER,
-    ADMIN
-}
+//package org.sample.bibsearchengine.entities;
+//
+//public enum AppUserRole {
+//    USER,
+//    ADMIN
+//}

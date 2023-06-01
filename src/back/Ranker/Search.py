@@ -1,36 +1,33 @@
 import time
 from collections import defaultdict
 
-from Indexer.IndexCreator import IndexCreator, TITLE, ABSTRACT
+from indexer.index_creator import TITLE, ABSTRACT
 from Preprocessor.DataCleaner import DataCleaner
 from Ranker.RankingAlgorithms import BooleanInformationRetrieval, BM25F
 
 
 class SearchEngine:
 
-    def __init__(self, db, max_results):
-        self.indexer = IndexCreator(db)
-        self.indexer.create_index()
-        self.inverted_index = self.indexer.index_dictionary
-        self.index_metadata = self.indexer.index_metadata
+    def __init__(self, index, max_results):
+        self.inverted_index = index.index_dictionary
+        self.index_metadata = index.index_metadata
         self.cleaner = DataCleaner()
         self.max_results = max_results
         self.bir = BooleanInformationRetrieval(self.inverted_index, self.max_results)
         self.bm25f = BM25F(self.inverted_index, total_docs=self.index_metadata.total_docs)
-        self.db = db
 
     def search(self, query):
         final_scored_docs = defaultdict(float)
         cleaned_query = self.cleaner.cleanData(query)
         all_docs = list(self._count_results(cleaned_query))
-
+        searching_docs = all_docs
         # Αdd AND-semantics of query to searching results
         # All words in the text must be present
-        searching_docs = list(self.add_and_semantics(cleaned_query, all_docs))
+        # searching_docs = list(self.add_and_semantics(cleaned_query, all_docs))
 
         # if none document have all words use all documents
-        if len(searching_docs) == 0:
-            searching_docs = all_docs
+        # if len(searching_docs) == 0:
+        #     searching_docs = all_docs
 
         # if exists too many documents, cut them to threshold with BooleanSearch (+ referenced_by)
         print("Searching", len(searching_docs), " number of docs (before boolean)")
@@ -51,15 +48,16 @@ class SearchEngine:
         # add referenced_by to ranking function
         for doc in searching_docs:
             final_score = 0.0
-            final_score += bm25f_scored_docs[doc] * 0.8
-            final_score += self.index_metadata.referenced_by[doc] * 0.2
+            final_score += bm25f_scored_docs[doc] * 0.85
+            final_score += self.index_metadata.referenced_by[doc] * 0.15
             final_scored_docs[doc] = final_score
 
         end_time = time.time()
         time_diff = end_time - end2_time
         print("Time elapsed (search):", time_diff, "seconds")
-        # [doc_id for doc_id, score in self.sort_documents(final_scored_docs)]
-        return [doc_id for doc_id, score in self.sort_documents(final_scored_docs)]
+
+        # return bm25f_scored_docs
+        return final_scored_docs
 
     def search_ids(self, user_query):
         start_time = time.time()
@@ -68,9 +66,6 @@ class SearchEngine:
         time_diff = end_time - start_time
         print("Time elapsed (final_results):", time_diff, "seconds")
         return ids
-
-    def fetch_data(self, ids):
-        return self.db.get_titles_abstracts_urls(ids, True)
 
     def _count_results(self, query_terms):
         docs = set()

@@ -12,5 +12,9 @@ public class SearchService {
         return  PythonAPISearch.searchIds(query);
     }
 
+    public List<String> alternativeQueries(String query) {
+        return  PythonAPISearch.alternativeQueries(query);
+    }
+
 }
 
