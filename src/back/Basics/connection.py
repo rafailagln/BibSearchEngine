@@ -8,7 +8,7 @@ class MongoDBConnection:
                  password=None,
                  auth_source='M151',
                  auth_mechanism='DEFAULT'):
-        self.host = 'localhost'
+        self.host = host
         self.port = port
         self.username = username
         self.password = password
