@@ -14,7 +14,7 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %
 
 
 class IndexCreator:
-    def __init__(self, db, metadata_collection, db_name='M151Dev', index_collection='Index'):
+    def __init__(self, db, metadata_collection, db_name='M151', index_collection='Index'):
         self.db_name = db_name
         self.index_collection = index_collection
         self.index_dictionary = TrieIndex(db_name=db_name, index_collection=index_collection)

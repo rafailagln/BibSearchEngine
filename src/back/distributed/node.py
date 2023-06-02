@@ -150,11 +150,10 @@ class DistributedNode:
 
     # run without SSL encryption
     def run(self):
-        if self.neighbour_nodes[self.node_id - 1]['leader']:
+        if self.neighbour_nodes[self.node_id - 1]['leader'] and self.neighbour_nodes[self.node_id - 1]['first_boot']:
             heartbeat_thread = threading.Thread(target=self.check_heartbeats)
             heartbeat_thread.start()
-        elif not self.neighbour_nodes[self.node_id - 1]['first_boot']:
-
+        if not self.neighbour_nodes[self.node_id - 1]['first_boot']:
             # get config from other nodes
             for _node in self.neighbour_nodes:
                 if self.node_id != _node['id']:
