@@ -7,7 +7,7 @@ import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
 
-from configurations.ini_config import IniConfig
+from configurations.read_config import IniConfig
 
 ini_config = IniConfig('../config.ini')
 

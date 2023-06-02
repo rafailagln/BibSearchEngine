@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from typing import List
 
-from configurations.ini_config import IniConfig
+from configurations.read_config import IniConfig
 from distributed.config_manager import ConfigManager
 from distributed.request_wrapper import RequestWrapper
 

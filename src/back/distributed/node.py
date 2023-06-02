@@ -11,8 +11,7 @@ from hashlib import sha256
 from indexer.index_creator import IndexCreator
 from Ranker.Search import SearchEngine
 from api_requester import APIRequester
-from configurations.ini_config import IniConfig
-from configurations.json_config import JsonConfig
+from configurations.read_config import IniConfig, JsonConfig
 from distributed.config_manager import ConfigManager
 from distributed.fast_json_loader import FastJsonLoader
 from distributed.utils import send_request, receive_message, send_message, execute_action
