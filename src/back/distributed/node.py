@@ -9,7 +9,7 @@ from collections import defaultdict
 from hashlib import sha256
 
 from indexer.index_creator import IndexCreator
-from Ranker.Search import SearchEngine
+from ranker.search import SearchEngine
 from api_requester import APIRequester
 from configurations.read_config import IniConfig, JsonConfig
 from distributed.config_manager import ConfigManager

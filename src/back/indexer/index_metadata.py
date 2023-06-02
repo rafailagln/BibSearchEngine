@@ -1,5 +1,5 @@
 from collections import defaultdict
-from Basics.connection import MongoDBConnection
+from db.connection import MongoDBConnection
 
 
 class Metadata:

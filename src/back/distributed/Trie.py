@@ -1,4 +1,4 @@
-from Basics.connection import MongoDBConnection
+from db.connection import MongoDBConnection
 
 class TrieNode:
     def __init__(self):

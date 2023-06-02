@@ -2,8 +2,8 @@ import time
 from collections import defaultdict
 
 from indexer.index_creator import TITLE, ABSTRACT
-from Preprocessor.DataCleaner import DataCleaner
-from Ranker.RankingAlgorithms import BooleanInformationRetrieval, BM25F
+from preprocessor.data_cleaner import DataCleaner
+from ranker.ranking_algorithms import BooleanInformationRetrieval, BM25F
 
 
 class SearchEngine:
