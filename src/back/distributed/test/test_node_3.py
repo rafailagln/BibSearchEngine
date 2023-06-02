@@ -1,8 +1,9 @@
-from distributed.node import DistributedNode
+from node_helper import create_distributed_node
 
 if __name__ == '__main__':
-    node3 = DistributedNode(_node_id=3, _node_port=9093, _config_file='../config.json',
-                            _folder_path='/Users/notaris/Desktop/test/node3/load',
-                            _max_results=10000, db_name='M151Dev', index_collection='IndexNode3',
-                            metadata_collection='MetadataNode3')
-    node3.run()
+    ini_config_path = '../node_data/node3/load/config.ini'
+    json_config_path = '../node_data/node3/load/config.json'
+    node_id = 3
+
+    node1 = create_distributed_node(ini_config_path, json_config_path, node_id)
+    node1.run()
