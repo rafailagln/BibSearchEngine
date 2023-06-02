@@ -2,7 +2,7 @@ import pymongo
 
 
 class MongoDBConnection:
-    def __init__(self, host='localhost',
+    def __init__(self, host='192.168.31.2',
                  port=27017,
                  username=None,
                  password=None,
