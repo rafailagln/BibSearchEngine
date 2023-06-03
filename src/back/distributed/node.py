@@ -37,7 +37,7 @@ def split_ids(ids, n):
 class DistributedNode:
     def __init__(self, _node_id, _node_host, _node_port, _json_file_path, _load_folder_path, _max_results, db_name,
                  index_collection, metadata_collection, _passphrase, cert_path, key_path, api_url, api_username,
-                 api_password):
+                 api_password, doc_index_metadata):
         """
         Initializes a DistributedNode object.
 
@@ -79,10 +79,12 @@ class DistributedNode:
         self.neighbour_nodes = config['nodes']
         self.neighbour_nodes[_node_id - 1]['alive'] = True
         self.current_leader = None
+        self.doc_index_metadata = doc_index_metadata
         self.db = FastJsonLoader(folder_path=self.folder_path,
                                  documents_per_file=1000,
                                  node_id=self.node_id,
-                                 node_count=len(self.neighbour_nodes))
+                                 node_count=len(self.neighbour_nodes),
+                                 doc_index_collection=doc_index_metadata)
         self.indexer = IndexCreator(self.db,
                                     db_name=db_name,
                                     index_collection=index_collection,
@@ -513,6 +515,7 @@ if __name__ == '__main__':
                              db_name=ini_config.get_property('Database', 'db_name'),
                              index_collection=ini_config.get_property('Database', 'index_collection'),
                              metadata_collection=ini_config.get_property('Database', 'metadata_collection'),
+                             doc_index_metadata=ini_config.get_property('Database', 'doc_index_metadata'),
                              cert_path=ini_config.get_property('SSL', 'cert_path'),
                              key_path=ini_config.get_property('SSL', 'key_path'),
                              _passphrase=ini_config.get_property('SSL', 'passphrase'),

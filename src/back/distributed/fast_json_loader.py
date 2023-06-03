@@ -1,13 +1,8 @@
 import os
 import json
 import gzip
-import threading
-import time
 
-from distributed.utils import send_request
-
-doc_id_lock = threading.Lock()
-load_lock = threading.Lock()
+from db.connection import MongoDBConnection
 
 
 # TODO: Check all blocking parts (see example load_to_nodes with new thread)
@@ -27,7 +22,7 @@ def get_shard(doc_id, num_shards):
 
 
 class FastJsonLoader:
-    def __init__(self, folder_path, documents_per_file, node_id, node_count):
+    def __init__(self, folder_path, documents_per_file, node_id, node_count, doc_index_collection, db_name="M151"):
         """
         Initializes the FastJsonLoader instance.
 
@@ -36,6 +31,8 @@ class FastJsonLoader:
         - documents_per_file: The number of documents to store in each file.
         - node_id: The ID of the node.
         - node_count: The total number of nodes.
+        - db_name: The name of the MongoDB database to use.
+        - index_collection: The name of the MongoDB collection to use for storing document IDs.
 
         Output: None
         """
@@ -43,38 +40,46 @@ class FastJsonLoader:
         self.documents = {}
         self.metadata = {}
         self.doc_id = node_id
-        self.id_file = f'{folder_path}/doc_ids.json'
         self.documents_per_file = documents_per_file
         self.ids_exist = False
         # self.node_id = node_id
         self.node_count = node_count
+        self.db_name = db_name
+        self.index_collection = doc_index_collection
 
     def load_ids(self):
         """
-        Loads the document IDs from the doc_file.
+        Loads the document IDs from the MongoDB.
 
         Input: None
 
         Output: None
         """
-        if self.id_file_exists():
-            with open(self.id_file, 'r') as f:
-                # Convert keys to integers
-                self.metadata = {int(k): v for k, v in json.load(f).items()}
-            self.ids_exist = True
-        else:
-            self.metadata = {}
+        with MongoDBConnection() as conn:
+            mongo = conn.get_connection()
+            index_collection = mongo.get_database(self.db_name).get_collection(self.index_collection)
+
+            mongo_metadata = list(index_collection.find())
+            # Convert keys back to integers
+            self.metadata = {int(k): v for item in mongo_metadata for k, v in item.items() if k != '_id'}
 
     def save_ids(self):
         """
-        Saves the document IDs to the doc_file.
+        Saves the document IDs to MongoDB.
 
         Input: None
 
         Output: None
         """
-        with open(self.id_file, 'w') as f:
-            json.dump(self.metadata, f)
+        with MongoDBConnection() as conn:
+            mongo = conn.get_connection()
+            index_collection = mongo.get_database(self.db_name).get_collection(self.index_collection)
+            index_collection.delete_many({})
+            # Convert all the integer keys in the metadata to strings
+            mongo_metadata = [{str(k): v} for k, v in self.metadata.items()]
+
+            # Insert the converted metadata into the collection
+            index_collection.insert_many(mongo_metadata)
 
     def load_documents(self):
         """
@@ -381,15 +386,13 @@ class FastJsonLoader:
 
     def id_file_exists(self):
         """
-        Checks if the ID file exists in the given folder.
+        Checks if the document IDs exist in MongoDB.
 
-        Input:
-        - folder_path: The path to the folder.
+        Input: None
 
-        Output:
-        - True if the ID file exists, False otherwise.
+        Output: True if the document IDs exist, False otherwise.
         """
-        if os.path.exists(self.id_file):
-            return True
-        else:
-            return False
+        with MongoDBConnection() as conn:
+            mongo = conn.get_connection()
+            index_collection = mongo.get_database(self.db_name).get_collection(self.index_collection)
+            return index_collection.count_documents({}) > 0
