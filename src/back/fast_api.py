@@ -12,11 +12,7 @@ from configurations.read_config import IniConfig
 from distributed.config_manager import ConfigManager
 from distributed.request_wrapper import RequestWrapper
 
-# TODO: add search_ids and fetch_data in new thread to have non-blocking actions
-# TODO: convert FastAPI to accept request from frond, forward to node, get results
-#       and then fetch results in buckets
-
-
+# Set up logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 app = FastAPI()
@@ -40,11 +36,19 @@ app.add_middleware(
 )
 
 
-# TODO: add error page
-# TODO: if a server crash not fail all the system
-# TODO: check if using only multithreading in search_ids is better than using threads at multiple points of code
-
 def get_current_username(credentials: HTTPBasicCredentials = Depends(security)):
+    """
+    Validates the provided username and password against the configured credentials.
+
+    Inputs:
+    - credentials: The HTTP basic authentication credentials.
+
+    Outputs:
+    - Returns the username if the credentials are correct.
+
+    Raises:
+    - HTTPException with status code 401 if the credentials are incorrect.
+    """
     correct_username = ini_config.get_property('API', 'username')
     correct_password = ini_config.get_property('API', 'password')
     if credentials.username != correct_username or credentials.password != correct_password:
@@ -58,6 +62,15 @@ def get_current_username(credentials: HTTPBasicCredentials = Depends(security)):
 
 @app.get('/search_ids/{query}', response_model=List[int])
 def search_ids(query: str):
+    """
+    Retrieves a list of document IDs matching the provided query.
+
+    Inputs:
+    - query: The search query.
+
+    Outputs:
+    - Returns a list of document IDs as the search result.
+    """
     start_time = time.time()
     with concurrent.futures.ThreadPoolExecutor() as executor:
         future = executor.submit(request_wrapper.search_ids, query)
@@ -70,11 +83,29 @@ def search_ids(query: str):
 
 @app.get("/alternate_queries/{query}", response_model=List[str])
 def alternate_queries(query: str):
+    """
+    Retrieves a list of alternate queries based on the provided query.
+
+    Inputs:
+    - query: The original query.
+
+    Outputs:
+    - Returns a list of alternate queries.
+    """
     return ['test1', 'test2', 'test3', 'test4', 'test5']
 
 
 @app.post('/fetch_data/', response_model=List[dict])
 def fetch_data(ids: List[int]):
+    """
+    Fetches data for the specified document IDs.
+
+    Inputs:
+    - ids: A list of document IDs.
+
+    Outputs:
+    - Returns a list of dictionaries containing the fetched data for each document.
+    """
     with concurrent.futures.ThreadPoolExecutor() as executor:
         future = executor.submit(request_wrapper.fetch_data, ids)
     results = future.result()
@@ -84,6 +115,16 @@ def fetch_data(ids: List[int]):
 
 @app.post("/update_config")
 async def read_protected_endpoint(request: Request, _: str = Depends(get_current_username)):
+    """
+    Updates the configuration and saves it.
+
+    Inputs:
+    - request: The HTTP request containing the updated configuration data.
+    - _: The username obtained from the authentication.
+
+    Outputs:
+    - Returns a JSON response with the status "OK" after updating the configuration.
+    """
     data = await request.json()
     config_manager.save_config(data)
     request_wrapper.neighbour_nodes = data
