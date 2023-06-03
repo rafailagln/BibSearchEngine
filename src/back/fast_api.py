@@ -40,14 +40,14 @@ def get_current_username(credentials: HTTPBasicCredentials = Depends(security)):
     """
     Validates the provided username and password against the configured credentials.
 
-    Inputs:
-    - credentials: The HTTP basic authentication credentials.
+    Args:
+        credentials: The HTTP basic authentication credentials.
 
-    Outputs:
-    - Returns the username if the credentials are correct.
+    Returns:
+        The username if the credentials are correct.
 
     Raises:
-    - HTTPException with status code 401 if the credentials are incorrect.
+        HTTPException with status code 401 if the credentials are incorrect.
     """
     correct_username = ini_config.get_property('API', 'username')
     correct_password = ini_config.get_property('API', 'password')
@@ -65,11 +65,11 @@ def search_ids(query: str):
     """
     Retrieves a list of document IDs matching the provided query.
 
-    Inputs:
-    - query: The search query.
+    Args:
+        query: The search query.
 
-    Outputs:
-    - Returns a list of document IDs as the search result.
+    Returns:
+        A list of document IDs as the search result.
     """
     start_time = time.time()
     with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -86,11 +86,11 @@ def alternate_queries(query: str):
     """
     Retrieves a list of alternate queries based on the provided query.
 
-    Inputs:
-    - query: The original query.
+    Args:
+        query: The original query.
 
-    Outputs:
-    - Returns a list of alternate queries.
+    Returns:
+        A list of alternate queries.
     """
     return ['test1', 'test2', 'test3', 'test4', 'test5']
 
@@ -100,11 +100,11 @@ def fetch_data(ids: List[int]):
     """
     Fetches data for the specified document IDs.
 
-    Inputs:
-    - ids: A list of document IDs.
+    Args:
+        ids: A list of document IDs.
 
-    Outputs:
-    - Returns a list of dictionaries containing the fetched data for each document.
+    Returns:
+        A list of dictionaries containing the fetched data for each document.
     """
     with concurrent.futures.ThreadPoolExecutor() as executor:
         future = executor.submit(request_wrapper.fetch_data, ids)
@@ -118,12 +118,11 @@ async def read_protected_endpoint(request: Request, _: str = Depends(get_current
     """
     Updates the configuration and saves it.
 
-    Inputs:
-    - request: The HTTP request containing the updated configuration data.
-    - _: The username obtained from the authentication.
+    Args:
+        request: The HTTP request containing the updated configuration data.
 
-    Outputs:
-    - Returns a JSON response with the status "OK" after updating the configuration.
+    Returns:
+        A JSON response with the status "OK" after updating the configuration.
     """
     data = await request.json()
     config_manager.save_config(data)

@@ -10,12 +10,12 @@ class Relevancy:
         """
         Calculates the cosine similarity between two sentences.
 
-        Inputs:
-        - s1: The first sentence (string)
-        - s2: The second sentence (string)
+        Args:
+            s1: The first sentence (string).
+            s2: The second sentence (string).
 
-        Output:
-        - similarity: The cosine similarity between the two sentences (float)
+        Returns:
+            similarity: The cosine similarity between the two sentences (float).
         """
         # Tokenize the sentences
         words1 = re.findall('\\w+', s1.lower())
