@@ -4,14 +4,14 @@ from db.connection import MongoDBConnection
 class TrieNode:
     def __init__(self):
         """
-       Initializes a TrieNode object.
+        Initializes a TrieNode object.
 
-       Input:
-       - None
+        Args:
+            None
 
-       Output:
-       - None
-       """
+        Returns:
+            None
+        """
         self.children = {}
         self.values = []
 
@@ -21,14 +21,13 @@ class TrieIndex:
         """
         Initializes a TrieIndex object.
 
-        Input:
-        - db_name: The name of the MongoDB database to connect to
-          (default: 'M151').
-        - index_collection: The name of the collection to store the
-          index in MongoDB (default: 'Index').
+        Args:
+            db_name (str): The name of the MongoDB database to connect to (default: 'M151').
+            index_collection (str): The name of the collection to store the index in MongoDB
+                                   (default: 'Index').
 
-        Output:
-        - None
+        Returns:
+            None
         """
         self.root = TrieNode()
         self.db_name = db_name
@@ -38,12 +37,11 @@ class TrieIndex:
         """
         Inserts a batch of documents into the trie index.
 
-        Input:
-        - docs: A list of tuples (key, value) representing the
-          documents to be inserted.
+        Args:
+            docs (list): A list of tuples (key, value) representing the documents to be inserted.
 
-        Output:
-        - None
+        Returns:
+            None
         """
         for doc in docs:
             self.insert(doc[0], doc[1])
@@ -52,12 +50,12 @@ class TrieIndex:
         """
         Inserts a key-value pair into the trie index.
 
-        Input:
-        - key: The key to be inserted.
-        - value: The value associated with the key.
+        Args:
+            key (str): The key to be inserted.
+            value: The value associated with the key.
 
-        Output:
-        - None
+        Returns:
+            None
         """
         node = self.root
         for char in key:
@@ -68,15 +66,14 @@ class TrieIndex:
 
     def search_batch(self, keys):
         """
-        Searches for multiple keys in the trie index and returns
-        the corresponding values.
+        Searches for multiple keys in the trie index and returns the corresponding values.
 
-        Input:
-        - keys: A list of keys to be searched.
+        Args:
+            keys (list): A list of keys to be searched.
 
-        Output:
-        - results: A dictionary where keys are the input keys
-          and values are the search results (list of values).
+        Returns:
+            results (dict): A dictionary where keys are the input keys and values are the search results
+                            (list of values).
         """
         results = {}
         for key in keys:
@@ -85,14 +82,13 @@ class TrieIndex:
 
     def search(self, key):
         """
-        Searches for a key in the trie index and returns the
-        corresponding values.
+        Searches for a key in the trie index and returns the corresponding values.
 
-        Input:
-        - key: The key to be searched.
+        Args:
+            key (str): The key to be searched.
 
-        Output:
-        - values: A list of values associated with the key.
+        Returns:
+            values (list): A list of values associated with the key.
         """
         node = self.root
         for char in key:
@@ -105,28 +101,27 @@ class TrieIndex:
         """
         Deletes multiple key-value pairs from the trie index.
 
-        Input:
-        - key_values: A dictionary where keys are the keys
-          to be deleted and values are the corresponding values.
+        Args:
+            key_values (dict): A dictionary where keys are the keys to be deleted and values are the corresponding
+                               values.
 
-        Output:
-        - None
+        Returns:
+            None
         """
         for key, value in key_values.items():
             self.delete(key, value)
 
     def delete(self, key, value=None):
         """
-        Deletes a key-value pair from the trie index. If value is None,
-        all values associated with the key will be deleted.
+        Deletes a key-value pair from the trie index. If value is None, all values associated with the key will be
+        deleted.
 
-        Input:
-        - key: The key to be deleted.
-        - value: The value to be deleted (if None, all values
-          associated with the key will be deleted).
+        Args:
+            key (str): The key to be deleted.
+            value: The value to be deleted (if None, all values associated with the key will be deleted).
 
-        Output:
-        - None
+        Returns:
+            None
         """
         def _delete(node, _key, depth):
             if depth == len(_key):
@@ -153,11 +148,11 @@ class TrieIndex:
         """
         Retrieves all keys stored in the trie index.
 
-        Input:
-        - None
+        Args:
+            None
 
-        Output:
-        - keys: A list of keys in the trie index.
+        Returns:
+            keys (list): A list of keys in the trie index.
         """
         keys = []
 
@@ -172,15 +167,13 @@ class TrieIndex:
 
     def save(self, batch_size=2000):
         """
-        Saves the trie index to MongoDB in batches for better
-        performance.
+        Saves the trie index to MongoDB in batches for better performance.
 
-        Input:
-        - batch_size: The number of documents to insert in each
-        batch (default: 5000).
+        Args:
+            batch_size (int): The number of documents to insert in each batch (default: 5000).
 
-        Output:
-        - None
+        Returns:
+            None
         """
         with MongoDBConnection() as conn:
             mongo = conn.get_connection()
@@ -216,11 +209,11 @@ class TrieIndex:
         """
         Loads the trie index from MongoDB and stores it as a TrieIndex (trie) in memory.
 
-        Input:
-        - None
+        Args:
+            None
 
-        Output:
-        - self: The loaded TrieIndex object.
+        Returns:
+            self (TrieIndex): The loaded TrieIndex object.
         """
         with MongoDBConnection() as conn:
             mongo = conn.get_connection()
@@ -245,11 +238,11 @@ class TrieIndex:
         """
         Checks if the trie index is empty.
 
-        Input:
-        - None
+        Args:
+            None
 
-        Output:
-        - empty: True if the trie index is empty, False otherwise.
+        Returns:
+            empty (bool): True if the trie index is empty, False otherwise.
         """
         with MongoDBConnection() as conn:
             mongo = conn.get_connection()

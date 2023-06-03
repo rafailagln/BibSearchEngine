@@ -9,10 +9,11 @@ class RequestWrapper:
         """
         Initializes a RequestWrapper object.
 
-        Input:
-        - config_file: The path to the JSON configuration file.
+        Args:
+            config_file (str): The path to the JSON configuration file.
 
-        Output: None
+        Returns:
+            None
         """
         self._config_file = config_file
         self._index = -1
@@ -22,9 +23,11 @@ class RequestWrapper:
         """
         Loads the configuration from the JSON file.
 
-        Input: None
+        Args:
+            None
 
-        Output: None
+        Returns:
+            None
         """
         with open(self._config_file, 'r') as file:
             self._config = json.load(file)
@@ -34,10 +37,11 @@ class RequestWrapper:
         """
         Returns the next neighbor node in a round-robin fashion.
 
-        Input: None
+        Args:
+            None
 
-        Output:
-        - next_node: The next neighbor node.
+        Returns:
+            next_node (dict): The next neighbor node.
         """
         self._index = (self._index + 1) % len(self.neighbour_nodes)
         return self.neighbour_nodes[self._index - 1]
@@ -47,12 +51,12 @@ class RequestWrapper:
         Sends a search request to one of the neighbor nodes to search the
         neighbor node for its ids.
 
-        Input:
-        - query: The search query.
+        Args:
+            query (str): The search query.
 
-        Output:
-        - response: The response from the neighbor node, or None if an
-          error occurred.
+        Returns:
+            response (dict): The response from the neighbor node, or None if an
+            error occurred.
         """
         i = 1
         while i <= 10:
@@ -72,12 +76,12 @@ class RequestWrapper:
         """
         Sends a fetch data request to one of the neighbor nodes.
 
-        Input:
-        - ids: The list of IDs to fetch data for.
+        Args:
+            ids (list): The list of IDs to fetch data for.
 
-        Output:
-        - response: The response from the neighbor node with the
-          data of sent ids, or None if an error occurred.
+        Returns:
+            response (dict): The response from the neighbor node with the
+            data of sent ids, or None if an error occurred.
         """
         i = 1
         while i <= 10:

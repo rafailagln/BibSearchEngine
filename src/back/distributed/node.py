@@ -17,14 +17,30 @@ from distributed.fast_json_loader import FastJsonLoader
 from distributed.utils import send_request, receive_message, send_message, execute_action
 
 
-# TODO: Check all blocking parts (see example execute_action with new thread)
-
-
 def process_data(data):
+    """
+    Process the data.
+
+    Args:
+        data (str): The data to be processed.
+
+    Returns:
+        str: The processed data.
+    """
     return f"Processed data: {data}"
 
 
 def split_ids(ids, n):
+    """
+    Split the list of IDs into multiple shards.
+
+    Args:
+        ids (list): The list of IDs to be split.
+        n (int): The number of shards.
+
+    Returns:
+        dict: A dictionary with shard IDs as keys and a list of IDs as values.
+    """
     result = {i: [] for i in range(1, n + 1)}
     for i, _id in enumerate(ids):
         if _id % n == 0:
@@ -41,24 +57,26 @@ class DistributedNode:
         """
         Initializes a DistributedNode object.
 
-        Input:
-        - _node_id: The ID of the node.
-        - _node_host: The host address of the node.
-        - _node_port: The port on which the node listens for connections.
-        - _json_file_path: The path to the JSON configuration file.
-        - _load_folder_path: The path to the folder containing the documents to load.
-        - _max_results: The maximum number of search results to return.
-        - db_name: The name of the MongoDB database.
-        - index_collection: The name of the collection to store the index in MongoDB.
-        - metadata_collection: The name of the collection to store the index metadata in MongoDB.
-        - _passphrase: The passphrase for SSL encryption.
-        - cert_path: The path to the SSL certificate.
-        - key_path: The path to the SSL private key.
-        - api_url: The URL of the API.
-        - api_username: The username for API authentication.
-        - api_password: The password for API authentication.
+        Args:
+            _node_id (int): The ID of the node.
+            _node_host (str): The host address of the node.
+            _node_port (int): The port on which the node listens for connections.
+            _json_file_path (str): The path to the JSON configuration file.
+            _load_folder_path (str): The path to the folder containing the documents to load.
+            _max_results (int): The maximum number of search results to return.
+            db_name (str): The name of the MongoDB database.
+            index_collection (str): The name of the collection to store the index in MongoDB.
+            metadata_collection (str): The name of the collection to store the index metadata in MongoDB.
+            _passphrase (str): The passphrase for SSL encryption.
+            cert_path (str): The path to the SSL certificate.
+            key_path (str): The path to the SSL private key.
+            api_url (str): The URL of the API.
+            api_username (str): The username for API authentication.
+            api_password (str): The password for API authentication.
+            doc_index_metadata (str): The metadata for document indexing.
 
-        Output: None
+        Returns:
+            None
         """
 
         self.node_id = _node_id
@@ -97,11 +115,11 @@ class DistributedNode:
         """
         Handles an incoming request.
 
-        Input:
-        - request: The JSON-encoded request.
+        Args:
+            request (str): The JSON-encoded request.
 
-        Output:
-        - The JSON-encoded response to the request.
+        Returns:
+            str: The JSON-encoded response to the request.
         """
         data = json.loads(request)
         action = data.get('action', '')
@@ -167,10 +185,8 @@ class DistributedNode:
         """
         Returns the leader node from the neighbour_nodes list.
 
-        Input: None
-
-        Output:
-        - Leader node
+        Returns:
+            dict: The leader node.
         """
         sorted_nodes = sorted(self.neighbour_nodes, key=lambda x: x['id'])
         return sorted_nodes[0]
@@ -179,10 +195,8 @@ class DistributedNode:
         """
         Updates the list of alive nodes by sending heartbeat requests to each node.
 
-        Input: None
-
-        Output:
-        - A list of alive nodes
+        Returns:
+            list: A list of alive nodes.
         """
         alive_nodes = []
 
@@ -207,10 +221,11 @@ class DistributedNode:
         """
         Notifies the nodes in the neighbour_nodes list about the new leader.
 
-        Input:
-        - leader: The new leader node
+        Args:
+            leader (dict): The new leader node.
 
-        Output: None
+        Returns:
+            None
         """
         for _node in self.neighbour_nodes:
             if _node['id'] != self.node_id:
@@ -233,9 +248,8 @@ class DistributedNode:
         When a connection is accepted, it creates a new thread to handle the request.
         The 'handle_request_wrapper' method is called to process the request.
 
-        Input: None
-
-        Output: None
+        Returns:
+            None
         """
         if self.neighbour_nodes[self.node_id - 1]['leader'] and self.neighbour_nodes[self.node_id - 1]['first_boot']:
             heartbeat_thread = threading.Thread(target=self.check_heartbeats)
@@ -278,10 +292,11 @@ class DistributedNode:
         """
         Wraps the handling of a request received from a client.
 
-        Input:
-        - conn: The connection object for the request
+        Args:
+            conn (socket): The connection object for the request.
 
-        Output: None
+        Returns:
+            None
         """
         request = receive_message(conn)
         print(f"Node {self.node_id}: Received request: {request[:100]}")
@@ -293,9 +308,8 @@ class DistributedNode:
         """
         Checks the heartbeats of the neighbour nodes and then send the load_document request.
 
-        Input: None
-
-        Output: None
+        Returns:
+            None
         """
         execute_action('heartbeat', self.neighbour_nodes, self.node_id)
         self.send_load_documents()
@@ -305,9 +319,8 @@ class DistributedNode:
         """
         Sends load_documents commands to the leader and other nodes.
 
-        Input: None
-
-        Output: None
+        Returns:
+            None
         """
         # load documents for leader
         load_documents_thread = threading.Thread(target=self.db.load_documents)
@@ -320,9 +333,8 @@ class DistributedNode:
         """
         Sends create_index commands to the leader and other nodes.
 
-        Input: None
-
-        Output: None
+        Returns:
+            None
         """
         # load index for leader
         create_load_index_thread = threading.Thread(target=self.indexer.create_load_index)
@@ -336,11 +348,11 @@ class DistributedNode:
         """
         Returns the shard for a given key.
 
-        Input:
-        - key: The key for which shard is to be determined
+        Args:
+            key (str): The key for which shard is to be determined.
 
-        Output:
-        - Shard node
+        Returns:
+            dict: The shard node.
         """
         num_shards = len(self.neighbour_nodes)
         shard_id = int(sha256(key.encode()).hexdigest(), 16) % num_shards
@@ -350,14 +362,14 @@ class DistributedNode:
         """
         Forwards a request to a specified node.
 
-        Input:
-        - _node: The node to which the request is to be forwarded
-        - data: The data to be sent in the request
-        - to_leader: A flag indicating if the request is to be
-          forwarded to the leader
+        Args:
+            _node (dict): The node to which the request is to be forwarded.
+            data (dict): The data to be sent in the request.
+            to_leader (bool): A flag indicating if the request is to be
+                              forwarded to the leader.
 
-        Output:
-        - The response from the forwarded request
+        Returns:
+            str: The response from the forwarded request.
         """
         node_addr = (_node['host'], _node['port'])
 
@@ -391,10 +403,11 @@ class DistributedNode:
         """
         Updates the local configuration file with the current neighbour node information.
 
-        Input:
-        - _config_file: The path to the configuration file
+        Args:
+            _config_file (str): The path to the configuration file.
 
-        Output: None
+        Returns:
+            None
         """
         with open(_config_file, 'w') as f:
             config = json.load(f)
@@ -406,11 +419,11 @@ class DistributedNode:
         """
         Handles the 'get_data' action in the request.
 
-        Input:
-        - data: The request data
+        Args:
+            data (dict): The request data.
 
-        Output:
-        - Response with the requested data
+        Returns:
+            list: The response with the requested data.
         """
         ids = data.get('ids', '')
         if not data.get('forwarded'):
@@ -453,13 +466,14 @@ class DistributedNode:
         """
         Searches for IDs based on the given query.
 
-        Input:
-        - data: The request data containing the query to be searched.
-                 It should be a dictionary with the following key
-                 'query': The query string to search for IDs.
+        Args:
+            data (dict): The request data containing the query to be searched.
+                         It should be a dictionary with the following key:
+                         - 'query': The query string to search for IDs.
 
-        Output: The response with the searched IDs.
-                It returns a list of IDs matching the query.
+        Returns:
+            list: The response with the searched IDs.
+                  It returns a list of IDs matching the query.
         """
         query = data.get('query', '')
         if not data.get('forwarded'):
