@@ -12,10 +12,22 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 
 public class PythonAPISearch {
 
-    private static final String PYTHON_API_URL = "http://127.0.0.1:5000/";
+    private static final String PYTHON_API_URL;
+
+    static {
+        // load the properties file
+        Properties properties = new Properties();
+        try {
+            properties.load(PythonAPISearch.class.getClassLoader().getResourceAsStream("application.properties"));
+            PYTHON_API_URL = properties.getProperty("python.api.url");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public static List<Integer> searchIds(String query) {
 
@@ -23,8 +35,6 @@ public class PythonAPISearch {
         String encodedQuery = null;
 
         encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8).replaceAll("\\+", "%20");
-
-        System.out.println("encodedQuery: " + encodedQuery);
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(PYTHON_API_URL + "search_ids/" + encodedQuery))
@@ -53,8 +63,6 @@ public class PythonAPISearch {
         String encodedQuery = null;
 
         encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8).replaceAll("\\+", "%20");
-
-        System.out.println("encodedQuery: " + encodedQuery);
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(PYTHON_API_URL + "alternate_queries/" + encodedQuery))

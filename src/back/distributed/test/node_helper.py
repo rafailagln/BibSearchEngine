@@ -4,6 +4,21 @@ from configurations.read_config import IniConfig, JsonConfig
 
 
 def create_distributed_node(ini_config_path, json_config_path, node_id):
+    """
+    Creates a DistributedNode object with the provided configuration files and node ID.
+    This function initializes a DistributedNode object based on the configuration files and node ID. It reads the
+    configuration details from the INI and JSON files, extracts the specific node configuration based on the given
+    node ID, and sets up the DistributedNode object with the extracted parameters.
+
+    Inputs:
+    - ini_config_path: The path to the INI configuration file.
+    - json_config_path: The path to the JSON configuration file.
+    - node_id: The ID of the node.
+
+    Output:
+    - Returns the created DistributedNode object.
+    """
+
     sys.path.insert(0, '../indexer/')
 
     ini_config = IniConfig(ini_config_path)

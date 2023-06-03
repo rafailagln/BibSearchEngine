@@ -15,6 +15,18 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %
 
 class IndexCreator:
     def __init__(self, db, metadata_collection, db_name='M151', index_collection='Index'):
+        """
+        Initializes an instance of IndexCreator.
+
+        Inputs:
+        - db: The database object.
+        - metadata_collection: The collection object for metadata.
+        - db_name: The name of the database. Default is 'M151'.
+        - index_collection: The name of the index collection. Default is 'Index'.
+
+        Outputs:
+        - None
+        """
         self.db_name = db_name
         self.index_collection = index_collection
         self.index_dictionary = TrieIndex(db_name=db_name, index_collection=index_collection)
@@ -22,6 +34,14 @@ class IndexCreator:
         self.index_metadata = Metadata(metadata_collection=metadata_collection)
 
     def create_load_index(self):
+        """
+        Creates or loads the index. This method creates the index if the collection
+        is empty, or loads the existing index.
+
+        Input: None
+
+        Output: None
+        """
         with MongoDBConnection() as conn:
             mongo = conn.get_connection()
             index_collection = mongo.get_database(self.db_name).get_collection(self.index_collection)
@@ -36,12 +56,12 @@ class IndexCreator:
                 for doc in docs:
                     doc_id = doc['doc_id']
                     if doc['title'] != ' ':
-                        cleaned_words = cleaner.cleanData(doc['title'])
+                        cleaned_words = cleaner.clean_data(doc['title'])
                         self.node_adder(doc_id, cleaned_words, TITLE)
                         self.index_metadata.add_doc_length_field(doc_id, len(cleaned_words), field=TITLE)
                         self.index_metadata.increase_average_length(len(cleaned_words), field=TITLE)
                     if doc['abstract'] != ' ':
-                        cleaned_words = cleaner.cleanData(doc['abstract'])
+                        cleaned_words = cleaner.clean_data(doc['abstract'])
                         self.node_adder(doc_id, cleaned_words, ABSTRACT)
                         self.index_metadata.add_doc_length_field(doc_id, len(cleaned_words), field=ABSTRACT)
                         self.index_metadata.increase_average_length(len(cleaned_words), field=ABSTRACT)
@@ -64,6 +84,16 @@ class IndexCreator:
                 self.index_metadata.load()
 
     def node_adder(self, _id, cleaned_words, _type):
+        """
+        Adds nodes to the index.
+
+        Inputs:
+        - _id: The document ID.
+        - cleaned_words: The list of cleaned words.
+        - _type: The type of the node.
+
+        Output: None
+        """
         _counter = 1
         for word in cleaned_words:
             self.index_dictionary.insert(word, (_id, _counter, _type))

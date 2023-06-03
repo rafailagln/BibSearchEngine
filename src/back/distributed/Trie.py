@@ -1,22 +1,64 @@
 from db.connection import MongoDBConnection
 
+
 class TrieNode:
     def __init__(self):
+        """
+       Initializes a TrieNode object.
+
+       Input:
+       - None
+
+       Output:
+       - None
+       """
         self.children = {}
         self.values = []
 
 
 class TrieIndex:
     def __init__(self, db_name='M151', index_collection='Index'):
+        """
+        Initializes a TrieIndex object.
+
+        Input:
+        - db_name: The name of the MongoDB database to connect to
+          (default: 'M151').
+        - index_collection: The name of the collection to store the
+          index in MongoDB (default: 'Index').
+
+        Output:
+        - None
+        """
         self.root = TrieNode()
         self.db_name = db_name
         self.index_collection = index_collection
 
     def insert_batch(self, docs):
+        """
+        Inserts a batch of documents into the trie index.
+
+        Input:
+        - docs: A list of tuples (key, value) representing the
+          documents to be inserted.
+
+        Output:
+        - None
+        """
         for doc in docs:
             self.insert(doc[0], doc[1])
 
     def insert(self, key, value):
+        """
+        Inserts a key-value pair into the trie index.
+
+        Input:
+        - key: The key to be inserted.
+        - value: The value associated with the key.
+
+        Output:
+        - None
+        """
         node = self.root
         for char in key:
             if char not in node.children:
@@ -25,12 +67,33 @@ class TrieIndex:
         node.values.append(value)
 
     def search_batch(self, keys):
+        """
+        Searches for multiple keys in the trie index and returns
+        the corresponding values.
+
+        Input:
+        - keys: A list of keys to be searched.
+
+        Output:
+        - results: A dictionary where keys are the input keys
+          and values are the search results (list of values).
+        """
         results = {}
         for key in keys:
             results[key] = self.search(key)
         return results
 
     def search(self, key):
+        """
+        Searches for a key in the trie index and returns the
+        corresponding values.
+
+        Input:
+        - key: The key to be searched.
+
+        Output:
+        - values: A list of values associated with the key.
+        """
         node = self.root
         for char in key:
             if char not in node.children:
@@ -39,10 +102,32 @@ class TrieIndex:
         return node.values
 
     def delete_batch(self, key_values):
+        """
+        Deletes multiple key-value pairs from the trie index.
+
+        Input:
+        - key_values: A dictionary where keys are the keys
+          to be deleted and values are the corresponding values.
+
+        Output:
+        - None
+        """
         for key, value in key_values.items():
             self.delete(key, value)
 
     def delete(self, key, value=None):
+        """
+        Deletes a key-value pair from the trie index. If value is None,
+        all values associated with the key will be deleted.
+
+        Input:
+        - key: The key to be deleted.
+        - value: The value to be deleted (if None, all values
+          associated with the key will be deleted).
+
+        Output:
+        - None
+        """
         def _delete(node, _key, depth):
             if depth == len(_key):
                 if value is None:
@@ -65,6 +150,15 @@ class TrieIndex:
         self.root = _delete(self.root, key, 0)
 
     def get_keys(self):
+        """
+        Retrieves all keys stored in the trie index.
+
+        Input:
+        - None
+
+        Output:
+        - keys: A list of keys in the trie index.
+        """
         keys = []
 
         def traverse(node, prefix):
@@ -77,6 +171,17 @@ class TrieIndex:
         return keys
 
     def save(self, batch_size=2000):
+        """
+        Saves the trie index to MongoDB in batches for better
+        performance.
+
+        Input:
+        - batch_size: The number of documents to insert in each
+        batch (default: 5000).
+
+        Output:
+        - None
+        """
         with MongoDBConnection() as conn:
             mongo = conn.get_connection()
             index_collection = mongo.get_database(self.db_name).get_collection(self.index_collection)
@@ -108,6 +213,15 @@ class TrieIndex:
             print("Finished saving trie to MongoDB")
 
     def load(self):
+        """
+        Loads the trie index from MongoDB and stores it as a TrieIndex (trie) in memory.
+
+        Input:
+        - None
+
+        Output:
+        - self: The loaded TrieIndex object.
+        """
         with MongoDBConnection() as conn:
             mongo = conn.get_connection()
             index_collection = mongo.get_database(self.db_name).get_collection(self.index_collection)
@@ -128,6 +242,15 @@ class TrieIndex:
             return self
 
     def is_empty(self):
+        """
+        Checks if the trie index is empty.
+
+        Input:
+        - None
+
+        Output:
+        - empty: True if the trie index is empty, False otherwise.
+        """
         with MongoDBConnection() as conn:
             mongo = conn.get_connection()
             index_collection = mongo.get_database(self.db_name).get_collection(self.index_collection)
@@ -135,4 +258,3 @@ class TrieIndex:
                 return True
             else:
                 return False
-

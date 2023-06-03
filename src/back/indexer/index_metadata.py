@@ -5,6 +5,15 @@ from db.connection import MongoDBConnection
 class Metadata:
 
     def __init__(self, db_name='M151', metadata_collection='Metadata'):
+        """
+        Initializes the Metadata object.
+
+        Inputs:
+        - db_name: The name of the MongoDB database.
+        - metadata_collection: The name of the collection in the MongoDB database.
+
+        Outputs: None
+        """
         self.length_field = defaultdict(lambda: defaultdict(int))
         self.average_length = defaultdict(float)
         self.referenced_by = defaultdict(int)
@@ -13,22 +22,71 @@ class Metadata:
         self.metadata_collection = metadata_collection
 
     def update_doc_num(self):
+        """
+        Updates the total number of documents.
+
+        Inputs: None
+
+        Outputs: None
+        """
         self.total_docs += 1
 
     def add_doc_length_field(self, doc_id, length, field):
+        """
+        Adds the length of a specific field in a document.
+
+        Inputs:
+        - doc_id: The ID of the document.
+        - length: The length of the field.
+        - field: The name of the field.
+
+        Outputs: None
+        """
         self.length_field[str(doc_id)][str(field)] = length
 
     def increase_average_length(self, length, field):
+        """
+        Increases the average length of a specific field.
+
+        Inputs:
+        - length: The length to be added to the average.
+        - field: The name of the field.
+
+        Outputs: None
+        """
         self.average_length[str(field)] += length
 
     def calculate_average_length(self):
+        """
+        Calculates the average length for each field.
+
+        Inputs: None
+
+        Outputs: None
+        """
         for field in self.average_length.keys():
             self.average_length[field] /= self.total_docs
 
     def add_referenced_by(self, doc_id, referenced):
+        """
+        Adds the number of times a document is referenced by other documents.
+
+        Inputs:
+        - doc_id: The ID of the document.
+        - referenced: The number of references.
+
+        Outputs: None
+        """
         self.referenced_by[str(doc_id)] = referenced
 
     def normalize_referenced_by(self):
+        """
+        Normalizes the referenced_by values.
+
+        Inputs: None
+
+        Outputs: None
+        """
         max_val = max(self.referenced_by.values())
         min_val = min(self.referenced_by.values())
 
@@ -41,9 +99,24 @@ class Metadata:
             self.referenced_by[key] /= range_val
 
     def set_total_docs(self, num):
+        """
+        Sets the total number of documents.
+
+        Inputs:
+        - num: The total number of documents.
+
+        Outputs: None
+        """
         self.total_docs = num
 
     def load(self):
+        """
+        Loads the metadata from the MongoDB collection.
+
+        Inputs: None
+
+        Outputs: None
+        """
         with MongoDBConnection() as conn:
             mongo = conn.get_connection()
             metadata_collection = mongo.get_database(self.db_name).get_collection(self.metadata_collection)
@@ -75,6 +148,13 @@ class Metadata:
             print("Loaded all metadata from MongoDB")
 
     def save(self):
+        """
+        Saves the metadata to the MongoDB collection.
+
+        Inputs: None
+
+        Outputs: None
+        """
         with MongoDBConnection() as conn:
             mongo = conn.get_connection()
             metadata_collection = mongo.get_database(self.db_name).get_collection(self.metadata_collection)
@@ -104,5 +184,4 @@ class Metadata:
             metadata_collection.update_one({"referenced_by": {"$exists": True}}, {"$set": referenced_by_document},
                                            upsert=True)
             print("Saved referenced_by document")
-
             print("Finished saving metadata to MongoDB")
