@@ -8,11 +8,12 @@ class Metadata:
         """
         Initializes the Metadata object.
 
-        Inputs:
-        - db_name: The name of the MongoDB database.
-        - metadata_collection: The name of the collection in the MongoDB database.
+        Args:
+            db_name (str): The name of the MongoDB database.
+            metadata_collection (str): The name of the collection in the MongoDB database.
 
-        Outputs: None
+        Returns:
+            None
         """
         self.length_field = defaultdict(lambda: defaultdict(int))
         self.average_length = defaultdict(float)
@@ -25,9 +26,8 @@ class Metadata:
         """
         Updates the total number of documents.
 
-        Inputs: None
-
-        Outputs: None
+        Returns:
+            None
         """
         self.total_docs += 1
 
@@ -35,12 +35,13 @@ class Metadata:
         """
         Adds the length of a specific field in a document.
 
-        Inputs:
-        - doc_id: The ID of the document.
-        - length: The length of the field.
-        - field: The name of the field.
+        Args:
+            doc_id (str): The ID of the document.
+            length (int): The length of the field.
+            field (str): The name of the field.
 
-        Outputs: None
+        Returns:
+            None
         """
         self.length_field[str(doc_id)][str(field)] = length
 
@@ -48,11 +49,12 @@ class Metadata:
         """
         Increases the average length of a specific field.
 
-        Inputs:
-        - length: The length to be added to the average.
-        - field: The name of the field.
+        Args:
+            length (int): The length to be added to the average.
+            field (str): The name of the field.
 
-        Outputs: None
+        Returns:
+            None
         """
         self.average_length[str(field)] += length
 
@@ -60,9 +62,8 @@ class Metadata:
         """
         Calculates the average length for each field.
 
-        Inputs: None
-
-        Outputs: None
+        Returns:
+            None
         """
         for field in self.average_length.keys():
             self.average_length[field] /= self.total_docs
@@ -71,11 +72,12 @@ class Metadata:
         """
         Adds the number of times a document is referenced by other documents.
 
-        Inputs:
-        - doc_id: The ID of the document.
-        - referenced: The number of references.
+        Args:
+            doc_id (str): The ID of the document.
+            referenced (int): The number of references.
 
-        Outputs: None
+        Returns:
+            None
         """
         self.referenced_by[str(doc_id)] = referenced
 
@@ -83,9 +85,8 @@ class Metadata:
         """
         Normalizes the referenced_by values.
 
-        Inputs: None
-
-        Outputs: None
+        Returns:
+            None
         """
         max_val = max(self.referenced_by.values())
         min_val = min(self.referenced_by.values())
@@ -102,10 +103,11 @@ class Metadata:
         """
         Sets the total number of documents.
 
-        Inputs:
-        - num: The total number of documents.
+        Args:
+            num (int): The total number of documents.
 
-        Outputs: None
+        Returns:
+            None
         """
         self.total_docs = num
 
@@ -113,9 +115,8 @@ class Metadata:
         """
         Loads the metadata from the MongoDB collection.
 
-        Inputs: None
-
-        Outputs: None
+        Returns:
+            None
         """
         with MongoDBConnection() as conn:
             mongo = conn.get_connection()
@@ -151,15 +152,14 @@ class Metadata:
         """
         Saves the metadata to the MongoDB collection.
 
-        Inputs: None
-
-        Outputs: None
+        Returns:
+            None
         """
         with MongoDBConnection() as conn:
             mongo = conn.get_connection()
             metadata_collection = mongo.get_database(self.db_name).get_collection(self.metadata_collection)
 
-            # Save each value in length_field as a separate documents
+            # Save each value in length_field as a separate document
             length_field_documents = []
             for doc_id, fields in self.length_field.items():
                 length_field_documents.append({
