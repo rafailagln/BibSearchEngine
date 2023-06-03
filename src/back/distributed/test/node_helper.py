@@ -34,6 +34,7 @@ def create_distributed_node(ini_config_path, json_config_path, node_id):
                            db_name=ini_config.get_property('Database', 'db_name'),
                            index_collection=ini_config.get_property('Database', 'index_collection'),
                            metadata_collection=ini_config.get_property('Database', 'metadata_collection'),
+                           doc_index_metadata=ini_config.get_property('Database', 'doc_index_metadata'),
                            cert_path=ini_config.get_property('SSL', 'cert_path'),
                            key_path=ini_config.get_property('SSL', 'key_path'),
                            _passphrase=ini_config.get_property('SSL', 'passphrase'),

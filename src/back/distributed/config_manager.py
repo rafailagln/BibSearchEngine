@@ -2,7 +2,14 @@ import json
 
 
 class ConfigManager:
+
     def __init__(self, file_path):
+        """
+        Initialize a ConfigManager object.
+
+        Args:
+            file_path (str): The path to the config file.
+        """
         self.file_path = file_path
 
     def load_config(self):
@@ -10,10 +17,10 @@ class ConfigManager:
         Loads the configuration data from the config file.
 
         Inputs:
-        - None
+            None
 
         Outputs:
-        - config_data: A dictionary containing the loaded configuration data.
+            config_data (dict): A dictionary containing the loaded configuration data.
         """
         with open(self.file_path, 'r') as file:
             config_data = json.load(file)
@@ -24,10 +31,10 @@ class ConfigManager:
         Saves-rewrites the provided configuration data to the file.
 
         Inputs:
-        - config_data: A dictionary containing the configuration data to be saved.
+            config_data (dict): A dictionary containing the configuration data to be saved.
 
         Outputs:
-        - None
+            None
         """
         data_to_save = {"nodes": config_data}
         with open(self.file_path, 'w') as file:

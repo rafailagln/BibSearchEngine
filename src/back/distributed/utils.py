@@ -16,11 +16,11 @@ def count_documents_in_files(folder_path):
     """
     Counts the total number of documents in JSON files located in the specified folder path.
 
-    Input:
-    - folder_path: The path of the folder containing the JSON files.
+    Args:
+        folder_path (str): The path of the folder containing the JSON files.
 
-    Output:
-    - total_documents: The total count of documents in the JSON files.
+    Returns:
+        total_documents (int): The total count of documents in the JSON files.
     """
     total_documents = 0
 
@@ -58,12 +58,12 @@ def send_request(node_addr, request):
     """
     Sends a request to a specified node address and receives the response.
 
-    Input:
-    - node_addr: The address of the node in the form of (host, port).
-    - request: The request to be sent, which should be a JSON-serializable dictionary.
+    Args:
+        node_addr (tuple): The address of the node in the form of (host, port).
+        request (dict): The request to be sent, which should be a JSON-serializable dictionary.
 
-    Output:
-    - The response received from the node, parsed as a JSON object.
+    Returns:
+        The response received from the node, parsed as a JSON object.
     """
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         try:
@@ -87,15 +87,15 @@ def execute_action(action, neighbor_nodes, node_id, attr1=None, response_callbac
     """
     Executes an action on every neighbor nodes, if it is alive.
 
-    Input:
-    - action: The action to be executed.
-    - neighbor_nodes: A list of neighbor nodes.
-    - node_id: The ID of the current node.
-    - attr1: Optional attribute for the action.
-    - response_callback: Optional callback function for handling response.
+    Args:
+        action (str): The action to be executed.
+        neighbor_nodes (list): A list of neighbor nodes.
+        node_id: The ID of the current node.
+        attr1: Optional attribute for the action.
+        response_callback: Optional callback function for handling response.
 
-    Output:
-    - None
+    Returns:
+        None
     """
     all_connected = False
     successful_nodes = list()
@@ -146,12 +146,12 @@ def send_message(message, conn):
     """
     Sends a message over the established connection.
 
-    Input:
-    - message: The message to be sent.
-    - conn: The socket connection to send the message through.
+    Args:
+        message (str): The message to be sent.
+        conn: The socket connection to send the message through.
 
-    Output:
-    - None
+    Returns:
+        None
     """
     message_size = len(message)
     print(f"[+] Message length:", message_size)
@@ -166,11 +166,11 @@ def receive_message(conn):
     """
     Receives a message from the connection.
 
-    Input:
-    - conn: The socket connection to receive the message from.
+    Args:
+        conn: The socket connection to receive the message from.
 
-    Output:
-    - message: The received message as a string.
+    Returns:
+        message (str): The received message as a string.
     """
     header = conn.recv(4)
     if not header:
