@@ -18,14 +18,14 @@ class IndexCreator:
         """
         Initializes an instance of IndexCreator.
 
-        Inputs:
-        - db: The database object.
-        - metadata_collection: The collection object for metadata.
-        - db_name: The name of the database. Default is 'M151'.
-        - index_collection: The name of the index collection. Default is 'Index'.
+        Args:
+            db: The database object.
+            metadata_collection: The collection object for metadata.
+            db_name: The name of the database. Default is 'M151'.
+            index_collection: The name of the index collection. Default is 'Index'.
 
-        Outputs:
-        - None
+        Returns:
+            None
         """
         self.db_name = db_name
         self.index_collection = index_collection
@@ -38,9 +38,8 @@ class IndexCreator:
         Creates or loads the index. This method creates the index if the collection
         is empty, or loads the existing index.
 
-        Input: None
-
-        Output: None
+        Returns:
+            None
         """
         with MongoDBConnection() as conn:
             mongo = conn.get_connection()
@@ -87,12 +86,13 @@ class IndexCreator:
         """
         Adds nodes to the index.
 
-        Inputs:
-        - _id: The document ID.
-        - cleaned_words: The list of cleaned words.
-        - _type: The type of the node.
+        Args:
+            _id: The document ID.
+            cleaned_words: The list of cleaned words.
+            _type: The type of the node.
 
-        Output: None
+        Returns:
+            None
         """
         _counter = 1
         for word in cleaned_words:

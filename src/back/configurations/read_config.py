@@ -7,10 +7,11 @@ class IniConfig:
         """
         Initializes an IniConfig object.
 
-        Input:
-        - ini_file: The path to the INI configuration file.
+        Args:
+            ini_file (str): The path to the INI configuration file.
 
-        Output: None
+        Returns:
+            None
         """
         self.config = configparser.ConfigParser()
         self.config.read(ini_file)
@@ -19,11 +20,12 @@ class IniConfig:
         """
         Retrieves a property value from the INI configuration.
 
-        Inputs:
-        - section: The section in the INI file.
-        - key: The key of the property.
+        Args:
+            section (str): The section in the INI file.
+            key (str): The key of the property.
 
-        Output: The value of the property.
+        Returns:
+            The value of the property.
         """
         return self.config.get(section, key)
 
@@ -31,11 +33,11 @@ class IniConfig:
         """
         Retrieves all properties within a section of the INI configuration.
 
-        Input:
-        - section: The section in the INI file.
+        Args:
+            section (str): The section in the INI file.
 
-        Output:
-        - A dictionary containing all properties within the section.
+        Returns:
+            dict: A dictionary containing all properties within the section.
         """
         return dict(self.config.items(section))
 
@@ -45,10 +47,11 @@ class JsonConfig:
         """
         Initializes a JsonConfig object.
 
-        Input:
-        - json_file: The path to the JSON configuration file.
+        Args:
+            json_file (str): The path to the JSON configuration file.
 
-        Output: None
+        Returns:
+            None
         """
         with open(json_file) as f:
             self.config = json.load(f)
@@ -57,11 +60,11 @@ class JsonConfig:
         """
         Retrieves a property value from the JSON configuration.
 
-        Input:
-        - key: The key of the property.
+        Args:
+            key (str): The key of the property.
 
-        Output:
-        - The value of the property.
+        Returns:
+            The value of the property.
         """
         return self.config.get(key)
 
@@ -69,8 +72,7 @@ class JsonConfig:
         """
         Retrieves all properties within the JSON configuration.
 
-        Input: None
-
-        Output: The JSON configuration as a dictionary.
+        Returns:
+            dict: The JSON configuration as a dictionary.
         """
         return self.config
