@@ -28,21 +28,61 @@ import concurrent.futures
 class BM25F:
 
     def __init__(self, inverted_index, total_docs):
+        """
+        Constructor method for the BM25F class.
+
+        Inputs:
+        - inverted_index: The inverted index used for scoring.
+        - total_docs: The total number of documents in the collection.
+
+        Output:
+        - None
+        """
         self.inverted_index = inverted_index
         self.total_docs = total_docs
 
     def update_index(self, inverted_index):
+        """
+        Updates the inverted index used for scoring.
+
+        Input:
+        - inverted_index: The updated inverted index.
+
+        Output:
+        - None
+        """
         self.inverted_index = inverted_index
 
     def update_total_docs(self, total_docs):
+        """
+        Updates the total number of documents in the collection.
+
+        Input:
+        - total_docs: The updated total number of documents.
+
+        Output:
+        - None
+        """
         self.total_docs = total_docs
 
-    '''
-    score(Q, D) = Σ [ (Wf * tf(qi, Ff, D)) * (k1 + 1) ] / [ Wf * tf(qi, Ff, D) + k1 * (1 - b + b * Lf(D) / avgLf) ]
-    length_field is a dictionary with doc_ids and fields. For every doc_id it has the number of the length of each field 
-    '''
-
     def bm25f(self, docs, query_terms, fields_weight_dict, length_field, avg_lf):
+        """
+        Calculates the BM25F score for a list of documents and a query.
+        The score is calculated for each field and then summed up. The final
+        score is the sum of the scores of each field. The type of BM25F is:
+        score(Q, D) = Σ [ (Wf * tf(qi, Ff, D)) * (k1_f + 1) ] /
+                        [ Wf * tf(qi, Ff, D) + k1_f * (1 - b_f + b_f * Lf(D) / avgLf) ]
+
+        Inputs:
+        - docs: List of document IDs to be scored.
+        - query_terms: List of terms in the query.
+        - fields_weight_dict: Dictionary containing the weight for each field.
+        - length_field: Dictionary with document IDs and the number of words in each field.
+        - avg_lf: Dictionary with the average length of each field.
+
+        Output:
+        - score: Dictionary of document IDs and their corresponding BM25F scores.
+        """
         score = defaultdict(float)
         start_time = time.time()
         idf = self._idf_calculation(query_terms)
@@ -121,6 +161,16 @@ class BM25F:
     #     return score
 
     def _idf_calculation(self, query_terms):
+        """
+        Calculates the IDF (Inverse Document Frequency) for each query term.
+        The type of IDF used is: IDF(qi) = log((N - n(q_i) + 0.5) / (n(q_i) + 0.5))
+
+        Input:
+        - query_terms: List of terms in the query.
+
+        Output:
+        - idf_dict: Dictionary containing the IDF value for each query term.
+        """
         idf_dict = defaultdict(float)
         for word in query_terms:
             unique_docs = self._number_of_word_docs(word)
@@ -128,11 +178,29 @@ class BM25F:
         return idf_dict
 
     def _idf(self, word):
+        """
+        Calculates the IDF (Inverse Document Frequency) for a single word.
+        The type of IDF used is: IDF(qi) = log((N - n(q_i) + 0.5) / (n(q_i) + 0.5))
+
+        Input:
+        - word: The word for which to calculate IDF.
+
+        Output:
+        - IDF value for the word.
+        """
         unique_docs = self._number_of_word_docs(word)
         return math.log((self.total_docs - unique_docs + 0.5) / (unique_docs + 0.5))
-        # return math.log(self.total_docs / unique_docs)
 
     def _number_of_word_docs(self, word):
+        """
+        Calculates the unique number of documents containing a specific word.
+
+        Input:
+        - word: The word for which to count the number of documents.
+
+        Output:
+        - The number of documents containing the word.
+        """
         docs = self.inverted_index.search(word)
         unique_docs = set()
         for doc_id, position, field in docs:
@@ -140,6 +208,15 @@ class BM25F:
         return len(unique_docs)
 
     def _tf_field_calculation(self, query_terms):
+        """
+        Calculates the term frequency (TF) for each query term and field.
+
+        Input:
+        - query_terms: List of terms in the query.
+
+        Output:
+        - tf_results: Dictionary containing the TF value for each query term, document ID, and field.
+        """
         tf_results = defaultdict(lambda: defaultdict(lambda: defaultdict(float)))
         for word in query_terms:
             docs = self.inverted_index.search(word)
@@ -148,6 +225,17 @@ class BM25F:
         return tf_results
 
     def _tf_field(self, word, _field, field_length):
+        """
+        Calculates the term frequency (TF) for a single word in a specific field (TITLE or ABSTRACT).
+
+        Input:
+        - word: The word for which to calculate TF.
+        - _field: The field in which to calculate TF.
+        - field_length: The length of the field.
+
+        Output:
+        - The TF value for the word in the field.
+        """
         docs = self.inverted_index.search(word)
         counter = 0
         for doc_id, position, field in docs:
@@ -157,6 +245,15 @@ class BM25F:
 
     @staticmethod
     def _algorith_parameters():
+        """
+        Returns the BM25F algorithm parameters for fields TITLE and ABSTRACT.
+
+        Inputs:
+        - None
+
+        Output:
+        - Dictionary containing the algorithm parameters for each field.
+        """
         return {
             TITLE: {
                 "k1": 1.2,
@@ -172,16 +269,56 @@ class BM25F:
 class BooleanInformationRetrieval:
 
     def __init__(self, inverted_index, max_results):
+        """
+        Constructor method for the BooleanInformationRetrieval class.
+
+        Inputs:
+        - inverted_index: The inverted index used for searching.
+        - max_results: The maximum number of results to return.
+
+        Output:
+        - None
+        """
         self.index = inverted_index
         self.max_results = max_results
 
     def update_index(self, inverted_index):
+        """
+        Method to update the inverted index.
+
+        Inputs:
+        - inverted_index: The new inverted index to be used.
+
+        Output:
+        - None
+        """
         self.index = inverted_index
 
     def update_max_results(self, max_results):
+        """
+        Method to update the maximum number of results to return.
+
+        Inputs:
+        - max_results: The new maximum number of results.
+
+        Output:
+        - None
+        """
         self.max_results = max_results
 
     def boolean_search(self, query):
+        """
+        Method to perform boolean search based on a query. Boolean search
+        is performed by finding the documents that contain all the words
+        in the query. The documents are then ranked by the number of words
+        they contain.
+
+        Inputs:
+        - query: A list of words representing the search query.
+
+        Output:
+        - A list of document IDs that match the query, sorted by relevance.
+        """
         start_time = time.time()
         results = defaultdict(int)
 

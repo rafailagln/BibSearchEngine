@@ -12,12 +12,33 @@ load_lock = threading.Lock()
 
 # TODO: Check all blocking parts (see example load_to_nodes with new thread)
 def get_shard(doc_id, num_shards):
+    """
+    Returns the shard ID based on the document ID and number of shards.
+
+    Inputs:
+    - doc_id: The document ID.
+    - num_shards: The number of shards.
+
+    Output:
+    - The shard ID.
+    """
     shard_id = doc_id % num_shards
     return shard_id + 1
 
 
 class FastJsonLoader:
     def __init__(self, folder_path, documents_per_file, node_id, node_count):
+        """
+        Initializes the FastJsonLoader instance.
+
+        Inputs:
+        - folder_path: The path to the folder containing the JSON files.
+        - documents_per_file: The number of documents to store in each file.
+        - node_id: The ID of the node.
+        - node_count: The total number of nodes.
+
+        Output: None
+        """
         self.folder_path = folder_path
         self.documents = {}
         self.metadata = {}
@@ -29,6 +50,13 @@ class FastJsonLoader:
         self.node_count = node_count
 
     def load_ids(self):
+        """
+        Loads the document IDs from the doc_file.
+
+        Input: None
+
+        Output: None
+        """
         if self.id_file_exists():
             with open(self.id_file, 'r') as f:
                 # Convert keys to integers
@@ -38,85 +66,28 @@ class FastJsonLoader:
             self.metadata = {}
 
     def save_ids(self):
+        """
+        Saves the document IDs to the doc_file.
+
+        Input: None
+
+        Output: None
+        """
         with open(self.id_file, 'w') as f:
             json.dump(self.metadata, f)
 
-    # def load_to_nodes(self, neighbor_nodes, curr_node_id):
-    #     # Define a function to be run on the new thread
-    #     def load_docs():
-    #         start_time = time.time()
-    #         for file in os.listdir(self.folder_path):
-    #             if not file.startswith('documents') and file.endswith('.gz'):
-    #                 file_path = os.path.join(self.folder_path, file)
-    #                 with load_lock:
-    #                     with gzip.open(file_path, 'rt', encoding='utf-8') as f:
-    #                         json_data = json.load(f)
-    #
-    #                 documents = {}
-    #
-    #                 for item in json_data['items']:
-    #                     title_field = item.get('title', '')
-    #                     title = title_field[0].replace('\n', ' ') if isinstance(title_field,
-    #                                                                             list) else title_field.replace(
-    #                         '\n', ' ')
-    #                     abstract = item.get('abstract', '').replace('\n', ' ')
-    #                     url = item.get('URL', '').replace('\n', ' ')
-    #                     referenced_by = item.get('referenced_by', '')
-    #
-    #                     doc = {
-    #                         'doc_id': self.doc_id,
-    #                         'title': title,
-    #                         'abstract': abstract,
-    #                         'URL': url,
-    #                         'referenced_by': referenced_by
-    #                     }
-    #
-    #                     shard = get_shard(self.doc_id, 3)
-    #
-    #                     if shard not in documents:
-    #                         documents[shard] = []
-    #                     documents[shard].append(doc)
-    #                     self.doc_id += 1
-    #
-    #                 for key, docs in documents.items():
-    #                     for _node in neighbor_nodes:
-    #                         if _node['id'] == curr_node_id and key == int(curr_node_id):
-    #                             # If current node ID matches the key and ID is integer, insert documents directly
-    #                             self.insert_documents(docs)
-    #                         elif _node['id'] == str(key):
-    #                             try:
-    #                                 # If number of documents is greater than 100, split into chunks
-    #                                 if len(docs) > 100:
-    #                                     num_chunks = len(docs) // 100 + 1
-    #                                     for i in range(num_chunks):
-    #                                         chunk = docs[i * 100:(i + 1) * 100]
-    #                                         response = send_request((_node['host'], _node['port']), {
-    #                                             'action': 'insert_docs',
-    #                                             'new_docs': chunk
-    #                                         })
-    #
-    #                                         if response and response.get('status') != 'OK':
-    #                                             raise Exception("Status is not OK.")
-    #                                 else:
-    #                                     # If number of documents is 100 or less, send as is
-    #                                     response = send_request((_node['host'], _node['port']), {
-    #                                         'action': 'insert_docs',
-    #                                         'new_docs': docs
-    #                                     })
-    #
-    #                                     if response and response.get('status') != 'OK':
-    #                                         raise Exception("Status is not OK.")
-    #                             except Exception as e:
-    #                                 print(f"Failed to insert docs to node {_node['id']}: {e}")
-    #         end_time = time.time()
-    #         time_elapsed = end_time - start_time
-    #         print(f"Time elapsed: {time_elapsed:.6f} seconds")
-    #
-    #     # Start a new thread and run the function on that thread
-    #     thread = threading.Thread(target=load_docs)
-    #     thread.start()
-
     def load_documents(self):
+        """
+        Loads the documents from the JSON files in the specified folder.
+        This method reads the JSON files in the folder and extracts the relevant document information,
+        such as title, abstract, URL, and referenced-by count. It organizes the documents into separate
+        compressed data files based on a specified number of documents per file. The method also handles
+        metadata about the document files.
+
+        Input: None
+
+        Output: None
+        """
         self.load_ids()
         counter = 1
         file_count = 1
@@ -125,7 +96,6 @@ class FastJsonLoader:
         skip_metadata = True
         if len(self.metadata) == 0:
             skip_metadata = False
-
 
         for file in os.listdir(self.folder_path):
             skip_file = False
@@ -167,7 +137,6 @@ class FastJsonLoader:
                             skip_file = True
                             break
 
-
                     if not skip_metadata:
                         self.metadata[self.doc_id] = {
                             'private_index': len(file_content) - 1,
@@ -202,6 +171,13 @@ class FastJsonLoader:
             self.save_ids()
 
     def find_highest_numbered_file(self):
+        """
+        Finds the file with the highest number in the file name.
+
+        Input: None
+
+        Output: The file name with the highest number.
+        """
         highest_number = None
         highest_numbered_file = None
 
@@ -222,6 +198,14 @@ class FastJsonLoader:
         return highest_numbered_file
 
     def insert_documents(self, new_documents):
+        """
+        Inserts new documents into the JSON files.
+
+        Input:
+        - new_documents: A list of new documents to insert.
+
+        Output: None
+        """
         custom_file_prefix = 'documents_'
         last_file = self.find_highest_numbered_file()
         if last_file is None:
@@ -252,6 +236,15 @@ class FastJsonLoader:
         self.save_ids()
 
     def save_new_data(self, last_document_data, last_file):
+        """
+        Saves the new data to a JSON file.
+
+        Input:
+        - last_document_data: The data to be saved.
+        - last_file: The file name to save the data to.
+
+        Output: None
+        """
         if len(last_document_data) != 0:
             file_path = os.path.join(self.folder_path[:-5] + "save/", last_file)
             with gzip.open(file_path, 'wt', encoding='utf-8') as f:
@@ -261,6 +254,24 @@ class FastJsonLoader:
             self.documents[last_file] = compressed_data
 
     def get_data(self, doc_ids, sort_by_doc_id=False):
+        """
+        Retrieves data for the given document IDs.
+
+        Inputs:
+        - doc_ids (list): A list of document IDs to retrieve data for.
+        - sort_by_doc_id (bool): Indicates whether to sort the results by doc_id. If set to True,
+          the results will be sorted based on the order of the provided doc_ids.
+
+        Outputs:
+        - A list of dictionaries containing the retrieved data. Each dictionary represents a document
+          and contains the following fields:
+            - 'order' (int): The order of the document ID in the input list (only present if sort_by_doc_id is True).
+            - 'doc_id' (int): The ID of the document.
+            - 'title' (str): The title of the document.
+            - 'abstract' (str): The abstract of the document.
+            - 'URL' (str): The URL of the document.
+            - 'referenced_by' (int): The number of times the document is referenced by other documents.
+        """
         file_buckets = {}
         doc_id_order = {doc_id: i for i, doc_id in enumerate(doc_ids)}
 
@@ -297,6 +308,14 @@ class FastJsonLoader:
             return unordered_results
 
     def delete_documents(self, doc_ids_to_delete):
+        """
+        Deletes documents from the JSON files.
+
+        Input:
+        - doc_ids_to_delete: A list of document IDs to delete.
+
+        Output: None
+        """
         # Group doc_ids by the file they belong to
         file_buckets = {}
         for doc_id in doc_ids_to_delete:
@@ -323,6 +342,15 @@ class FastJsonLoader:
         self.save_ids()
 
     def count_documents_in_folder(self):
+        """
+        Counts the total number of documents in the folder.
+
+        Input:
+        - folder_path: The path to the folder containing the JSON files.
+
+        Output:
+        - The number of documents.
+        """
         total_documents = 0
 
         # Loop through all files in the folder
@@ -337,12 +365,30 @@ class FastJsonLoader:
         return total_documents
 
     def get_all_documents(self):
+        """
+        Retrieves all documents from the JSON files.
+
+        Input:
+        - folder_path: The path to the folder containing the JSON files.
+
+        Output:
+        - A list of dictionaries containing all the documents.
+        """
         all_ids = []
         for i in range(1, self.doc_id):
             all_ids.append(i)
         return self.get_data(all_ids)
 
     def id_file_exists(self):
+        """
+        Checks if the ID file exists in the given folder.
+
+        Input:
+        - folder_path: The path to the folder.
+
+        Output:
+        - True if the ID file exists, False otherwise.
+        """
         if os.path.exists(self.id_file):
             return True
         else:
