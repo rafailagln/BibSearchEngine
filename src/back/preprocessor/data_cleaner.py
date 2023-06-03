@@ -16,7 +16,7 @@ class DataCleaner:
         nltk.download('punkt')
         self._stop_words = set(stopwords.words('english'))
 
-    def cleanData(self, data):
+    def clean_data(self, data):
         """
         Cleans the given data by performing several data cleaning operations.
 
@@ -27,14 +27,14 @@ class DataCleaner:
         - Returns the cleaned data.
 
         """
-        data = self.__htmlStrip(data)
-        data = self.__lowerString(data)
+        data = self.__html_strip(data)
+        data = self.__lower_string(data)
         data = self.__tokenizer(data)
-        data = self.__punctuationDeletion(data)
+        data = self.__punctuation_deletion(data)
         return data
 
     @staticmethod
-    def __htmlStrip(data):
+    def __html_strip(data):
         """
         Removes HTML tags from the given data.
 
@@ -48,7 +48,7 @@ class DataCleaner:
         return re.sub('<.*?>', ' ', data)
 
     @staticmethod
-    def __lowerString(data):
+    def __lower_string(data):
         """
         Converts the given data to lowercase.
 
@@ -75,7 +75,7 @@ class DataCleaner:
         """
         return word_tokenize(data)
 
-    def __punctuationDeletion(self, data):
+    def __punctuation_deletion(self, data):
         """
         Removes stopwords and punctuation from the given data.
 

@@ -45,7 +45,7 @@ class SearchEngine:
            BM25F score and the referenced_by score. The final score is stored in 'final_scored_docs'.
         """
         final_scored_docs = defaultdict(float)
-        cleaned_query = self.cleaner.cleanData(query)
+        cleaned_query = self.cleaner.clean_data(query)
         all_docs = list(self._count_results(cleaned_query))
         searching_docs = all_docs
         # Αdd AND-semantics of query to searching results

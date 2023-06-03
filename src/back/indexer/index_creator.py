@@ -36,12 +36,12 @@ class IndexCreator:
                 for doc in docs:
                     doc_id = doc['doc_id']
                     if doc['title'] != ' ':
-                        cleaned_words = cleaner.cleanData(doc['title'])
+                        cleaned_words = cleaner.clean_data(doc['title'])
                         self.node_adder(doc_id, cleaned_words, TITLE)
                         self.index_metadata.add_doc_length_field(doc_id, len(cleaned_words), field=TITLE)
                         self.index_metadata.increase_average_length(len(cleaned_words), field=TITLE)
                     if doc['abstract'] != ' ':
-                        cleaned_words = cleaner.cleanData(doc['abstract'])
+                        cleaned_words = cleaner.clean_data(doc['abstract'])
                         self.node_adder(doc_id, cleaned_words, ABSTRACT)
                         self.index_metadata.add_doc_length_field(doc_id, len(cleaned_words), field=ABSTRACT)
                         self.index_metadata.increase_average_length(len(cleaned_words), field=ABSTRACT)
