@@ -15,14 +15,14 @@ if [ $# -ne 4 ]; then
     exit 1
 fi
 
-PYTHON_SRC_PATH="$1"
+PROJECT_SRC_PATH="$1"
 JSON_CONFIG_PATH="$2"
 INI_CONFIG_PATH="$3"
 NODE_ID="$4"
 
 # Validate paths
-if [ ! -d "$PYTHON_SRC_PATH" ]; then
-    echo "Error: The provided Python source directory does not exist: $PYTHON_SRC_PATH"
+if [ ! -d "$PROJECT_SRC_PATH" ]; then
+    echo "Error: The provided Python source directory does not exist: $PROJECT_SRC_PATH"
     exit 1
 fi
 
@@ -43,8 +43,8 @@ if ! [[ "$NODE_ID" =~ ^[0-9]+$ ]] ; then
 fi
 
 # Set python path
-export PYTHONPATH="${PYTHONPATH}:${PYTHON_SRC_PATH}"
-cd "${PYTHON_SRC_PATH}/distributed" || exit
+export PYTHONPATH="${PYTHONPATH}:${PROJECT_SRC_PATH}"
+cd "${PROJECT_SRC_PATH}/distributed" || exit
 
 # Execute the node
 python3 node.py --json_config "$JSON_CONFIG_PATH" --ini_config "$INI_CONFIG_PATH" --node_id "$NODE_ID"

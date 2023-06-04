@@ -68,7 +68,8 @@ class IndexCreator:
                         self.index_metadata.add_referenced_by(doc_id, doc['referenced_by'])
                     count += 1
                     if count % progress_threshold == 0:
-                        print(f'Created {count}/{est_total_size} docs ({count / est_total_size:.2%})', end="\r", flush=True)
+                        print(f'Created {count}/{est_total_size} docs ({count / est_total_size:.2%})', end="\r",
+                              flush=True)
                 logging.info("Created index.")
                 self.index_metadata.calculate_average_length()
                 self.index_metadata.normalize_referenced_by()
