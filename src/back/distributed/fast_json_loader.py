@@ -124,7 +124,7 @@ class FastJsonLoader:
                             'referenced_by': referenced_by
                         })
                     else:
-                        if self.doc_id in self.metadata and self.metadata[self.doc_id]['in_fl'] == file:
+                        if self.doc_id in self.metadata and self.metadata[self.doc_id]['d_f'] == file:
                             file_content.append({
                                 'doc_id': self.doc_id,
                                 'title': title,
@@ -140,9 +140,9 @@ class FastJsonLoader:
 
                     if not skip_metadata:
                         self.metadata[self.doc_id] = {
-                            'private_index': len(file_content) - 1,
-                            'file': f'documents_{file_count}.gz',
-                            'in_fl': file
+                            'p_i': len(file_content) - 1,
+                            'p_f': f'documents_{file_count}.gz',
+                            'd_f': file
                         }
 
                     self.doc_id += self.node_count
@@ -277,7 +277,7 @@ class FastJsonLoader:
         # Create buckets for doc_ids belonging to the same file
         for doc_id in doc_ids:
             if doc_id in self.metadata:
-                file = self.metadata[doc_id]['file']
+                file = self.metadata[doc_id]['p_f']
                 if file not in file_buckets:
                     file_buckets[file] = []
                 file_buckets[file].append(doc_id)
@@ -289,7 +289,7 @@ class FastJsonLoader:
             item_data = json.loads(gzip.decompress(compressed_data).decode('utf-8'))
 
             for doc_id in bucket_doc_ids:
-                index = self.metadata[doc_id]['private_index']
+                index = self.metadata[doc_id]['p_i']
                 item = item_data[index]
                 unordered_results.append({
                     "order": doc_id_order[doc_id],
