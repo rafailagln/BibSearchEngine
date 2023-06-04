@@ -38,7 +38,7 @@ class Metadata:
         Args:
             doc_id (str): The ID of the document.
             length (int): The length of the field.
-            field (str): The name of the field.
+            field (int): The name of the field.
 
         Returns:
             None
@@ -51,7 +51,7 @@ class Metadata:
 
         Args:
             length (int): The length to be added to the average.
-            field (str): The name of the field.
+            field (int): The name of the field.
 
         Returns:
             None
