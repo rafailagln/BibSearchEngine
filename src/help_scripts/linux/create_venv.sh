@@ -9,6 +9,8 @@ if [ -z "$ENV_PATH" ]; then
     exit 1
 fi
 
+apt install -y python3.10-venv
+
 # Create the virtual environment
 python3 -m venv $ENV_PATH
 
