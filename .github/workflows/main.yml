@@ -48,8 +48,9 @@ jobs:
 
     - name: Install build module and build Python package
       run: |
-        source env.sh
-        source venv/bin/activate
+        source src/back/env.sh
+        source src/back/venv/bin/activate
         cd src/back
         $PYTHON3_PATH -m pip install build
         $PYTHON3_PATH -m build --sdist
+
