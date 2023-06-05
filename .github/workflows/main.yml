@@ -44,3 +44,8 @@ jobs:
         fi
         ${PYTHON3_PATH} -m venv venv
         source venv/bin/activate && pip install -r requirements.txt
+    - name: Install build module and build Python package
+      run: |
+        source src/back/venv/bin/activate
+        ${PYTHON3_PATH} -m pip install build
+        ${PYTHON3_PATH} -m build --sdist
