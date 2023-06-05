@@ -6,7 +6,6 @@ from nltk.tokenize import word_tokenize
 
 
 class DataCleaner:
-
     def __init__(self) -> None:
         """
         Initializes the DataCleaner object and downloads necessary NLTK resources.

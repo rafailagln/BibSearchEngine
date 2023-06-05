@@ -1,0 +1,271 @@
+\documentclass{article}
+
+\begin{document}
+
+\title{Bibsearch Engine Report}
+\author{Your Name}
+\date{\today}
+
+\maketitle
+\newpage
+\tableofcontents
+
+\newpage
+
+
+\section{Introduction}
+
+% Provide an introduction to the bibsearch engine and its purpose.
+
+% \chapter{Directory Structure}
+
+% \subsection{Root Directory}
+
+% \begin{itemize}
+%     \item \texttt{Makefile}: Makefile for building the project.
+%     \item \texttt{\_\_init\_\_.py}: Initialization file.
+%     \item \texttt{api\_requester.py}: Module for making API requests.
+%     \item \texttt{build}: Build directory.
+%     \item \texttt{classes.dot}: Graphviz DOT file for class diagrams.
+%     \item \texttt{classes\_DEEPCHEM.png}: Image file for class diagrams.
+%     \item \texttt{config.ini}: Configuration file in INI format.
+%     \item \texttt{config.json}: Configuration file in JSON format.
+%     \item \texttt{configurations}: Directory for configuration-related modules.
+%     \begin{itemize}
+%         \item \texttt{\_\_init\_\_.py}: Initialization file.
+%         \item \texttt{read\_config.py}: Module for reading the configuration.
+%     \end{itemize}
+%     \item \texttt{db}: Directory for database-related modules.
+%     \begin{itemize}
+%         \item \texttt{\_\_init\_\_.py}: Initialization file.
+%         \item \texttt{connection.py}: Module for database connection.
+%     \end{itemize}
+%     \item \texttt{distributed}: Directory for distributed computing modules.
+%     \begin{itemize}
+%         \item \texttt{Trie.py}: Module for the Trie data structure.
+%         \item \texttt{config\_manager.py}: Module for managing configuration in a distributed environment.
+%         \item \texttt{fast\_json\_loader.py}: Module for fast JSON loading.
+%         \item \texttt{node.py}: Module for representing a distributed computing node.
+%         \item \texttt{node\_data}: Directory for storing node-specific data.
+%         \item \texttt{request\_wrapper.py}: Module for wrapping API requests in a distributed environment.
+%         \item \texttt{test}: Directory for test-related modules.
+%         \item \texttt{utils.py}: Utility module for distributed computing.
+%     \end{itemize}
+%     \item \texttt{docs}: Directory for documentation.
+%     \begin{itemize}
+%         \item \texttt{index.md}: Markdown file for the documentation index.
+%     \end{itemize}
+%     \item \texttt{error\_handling}: Directory for error handling modules.
+%     \begin{itemize}
+%         \item \texttt{\_\init\_\_.py}: Initialization file.
+%         \item \texttt{exceptions.py}: Module for custom exceptions.
+%     \end{itemize}
+%     \item \texttt{fast\_api.py}: FastAPI module for the web application.
+%     \item \texttt{indexer}: Directory for indexing modules.
+%     \begin{itemize}
+%         \item \texttt{\_\init\_\_.py}: Initialization file.
+%         \item \texttt{\_\_pycache\_\_}: Directory for cached Python files.
+%         \item \texttt{data\_reader.py}: Module for reading data for indexing.
+%         \item \texttt{index\_creator.py}: Module for creating indexes.
+%         \item \texttt{index\_metadata.py}: Module for indexing metadata.
+%         \item \texttt{index\_valueInfo.py}: Module for indexing value information.
+%     \end{itemize}
+%     \item \texttt{main.py}: Main entry point for the bibsearch engine.
+%     \item \texttt{make.bat}: Batch file for building the project (Windows).
+%     \item \texttt{mkdocs.yml}: Configuration file for MkDocs documentation.
+%     \item \texttt{preprocessor}: Directory for data preprocessing modules.
+%     \begin{itemize}
+%         \item \texttt{\_\_init\_\_.py}: Initialization file.
+%         \item \texttt{\_\_pycache\_\_}: Directory for cached Python files.
+%         \item \texttt{data\_cleaner.py}: Module for cleaning data before indexing.
+%     \end{itemize}
+%     \item \texttt{pyproject.toml}: Project metadata file.
+%     \item \texttt{ranker}: Directory for ranking modules.
+%     \begin{itemize}
+%         \item \texttt{\_\_init\_\_.py}: Initialization file.
+%         \item \texttt{ranking\_algorithms.py}: Module for ranking algorithms.
+%         \item \texttt{relevancy.py}: Module for calculating relevancy scores.
+%         \item \texttt{search.py}: Module for searching and ranking results.
+%     \end{itemize}
+% \end{itemize}
+
+\section{Implementation}
+\subsection{Ranking Implementation}
+
+The ranking has been implemented using the BM25F algorithm, which is a variant of the BM25 ranking algorithm. The following steps outline how the ranking process works:
+
+\begin{enumerate}
+    \item The \texttt{BM25F} class is defined, taking the inverted index and the total number of documents in the collection as input.
+    \item The \texttt{bm25f} method in the \texttt{BM25F} class calculates the BM25F score for a list of documents and a query. It calculates the score for each field (e.g., title, abstract) and then sums up the scores to obtain the final score for each document.
+    \item The \texttt{\_idf\_calculation} method calculates the IDF (Inverse Document Frequency) for each query term. IDF is a measure of how important a term is in the collection.
+    \item The \texttt{\_tf\_field\_calculation} method calculates the term frequency (TF) for each query term and field. TF is a measure of how frequently a term appears in a document's field.
+    \item The \texttt{\_algorith\_parameters} method returns the algorithm parameters (k1 and b) for each field. These parameters control the impact of term frequency and field length in the scoring process.
+    \item The \texttt{SearchEngine} class is defined, taking the inverted index and the maximum number of results to return as input.
+    \item The \texttt{search} method in the \texttt{SearchEngine} class performs the search operation using the BM25F ranking algorithm. It cleans the query, counts the results, performs boolean search if needed, ranks the documents using BM25F, and calculates the final score for each document based on a combination of the BM25F score and the referenced\_by score.
+    \item The \texttt{BooleanInformationRetrieval} class is defined, which performs boolean search by finding the documents that contain all the words in the query. The documents are then ranked by the number of words they contain.
+    \item The \texttt{Relevancy} class provides a cosine similarity method to calculate the similarity between two sentences.
+    \item The \texttt{sort\_documents} method in the \texttt{SearchEngine} class sorts the documents based on their scores in descending order.
+\end{enumerate}
+
+In summary, the ranking process involves calculating the IDF, TF, and BM25F scores for each document and query term, and then combining these scores to obtain the final ranking. The process takes into account factors such as term frequency, field length, and document references to determine the relevance and ranking of documents.
+
+\subsubsection{Preprocessor Package}
+
+The preprocessor package provides functionality to clean and preprocess the data before performing any analysis or indexing. The package consists of the \texttt{DataCleaner} class, which performs various data cleaning operations. Here's a summary of the implemented functionality:
+
+\begin{itemize}
+    \item \texttt{clean\_data(data)}: Cleans the given data by performing several data cleaning operations. It removes HTML tags, converts the data to lowercase, tokenizes the data into a list of words, and removes stopwords and punctuation from the data. The cleaned data is returned as a list of words.
+    \item \texttt{\_\_html\_strip(data)}: Removes HTML tags from the given data.
+    \item \texttt{\_\_lower\_string(data)}: Converts the given data to lowercase.
+    \item \texttt{\_\_tokenizer(data)}: Tokenizes the given data into a list of words.
+    \item \texttt{\_\_punctuation\_deletion(data)}: Removes stopwords and punctuation from the given data.
+\end{itemize}
+
+The \texttt{DataCleaner} class utilizes the NLTK library for various operations. It downloads the necessary NLTK resources, such as stopwords and tokenizers, during initialization.
+
+The data cleaning operations performed by the \texttt{DataCleaner} class help in preparing the data for further analysis or indexing. It removes unnecessary HTML tags, converts the data to lowercase, tokenizes the data into words, and removes common stopwords and punctuation. The cleaned data can then be used for various natural language processing tasks.
+
+Overall, the preprocessor package provides essential functionality for cleaning and preprocessing data, ensuring that it is in a suitable format for further analysis or indexing.
+
+\subsection{Indexer Package}
+
+The indexer package provides functionality to create and manage indexes for a MongoDB database. It consists of the \texttt{Reader} and \texttt{IndexCreator} classes, along with supporting classes \texttt{Metadata} and \texttt{InfoClass}.
+
+\subsubsection{Reader}
+
+The \texttt{Reader} class handles reading operations from a MongoDB database. It provides methods to retrieve a collection, read all documents from a collection, and read a limited number of documents from a collection. Here are the key methods of the \texttt{Reader} class:
+
+\begin{itemize}
+    \item \texttt{\_\_init\_\_(connection\_string)}: Initializes a \texttt{Reader} object with the given MongoDB connection string.
+    \item \texttt{get\_collection(db\_name, collection\_name)}: Retrieves a collection from the MongoDB database.
+    \item \texttt{read\_collection(collection)}: Reads all documents from the provided collection.
+    \item \texttt{read\_limited\_collection(collection, limit)}: Reads a limited number of documents from the provided collection.
+\end{itemize}
+
+\subsubsection{Metadata}
+
+The \texttt{Metadata} class handles metadata operations related to the index. It maintains information about document lengths, average lengths, and references. Here are the key methods of the \texttt{Metadata} class:
+
+\begin{itemize}
+    \item \texttt{\_\_init\_\_(db\_name, metadata\_collection)}: Initializes the \texttt{Metadata} object with the given MongoDB database name and collection name.
+    \item \texttt{update\_doc\_num()}: Updates the total number of documents.
+    \item \texttt{add\_doc\_length\_field(doc\_id, length, field)}: Adds the length of a specific field in a document.
+    \item \texttt{increase\_average\_length(length, field)}: Increases the average length of a specific field.
+    \item \texttt{calculate\_average\_length()}: Calculates the average length for each field.
+    \item \texttt{add\_referenced\_by(doc\_id, referenced)}: Adds the number of times a document is referenced by other documents.
+    \item \texttt{normalize\_referenced\_by()}: Normalizes the referenced\_by values.
+    \item \texttt{set\_total\_docs(num)}: Sets the total number of documents.
+    \item \texttt{load()}: Loads the metadata from the MongoDB collection.
+    \item \texttt{save()}: Saves the metadata to the MongoDB collection.
+\end{itemize}
+
+\subsubsection{InfoClass}
+
+The \texttt{InfoClass} class represents information about a specific document in the index. It stores the type, position, and document ID associated with the information. The class provides a method to convert the instance into a dictionary representation.
+
+\subsubsection{IndexCreator}
+
+The \texttt{IndexCreator} class handles the creation and loading of the index. It utilizes the \texttt{TrieIndex} class from the \texttt{distributed} module for indexing. Here are the key methods of the \texttt{IndexCreator} class:
+
+\begin{itemize}
+    \item \texttt{\_\_init\_\_(db, metadata\_collection, db\_name='M151', index\_collection='Index')}: Initializes an instance of \texttt{IndexCreator} with the given parameters.
+    \item \texttt{create\_load\_index()}: Creates or loads the index. It creates the index if the collection is empty or loads the existing index.
+    \item \texttt{node\_adder(\_id, cleaned\_words, \_type)}: Adds nodes to the index.
+\end{itemize}
+
+The \texttt{IndexCreator} class utilizes the \texttt{DataCleaner} class from the preprocessor package for cleaning the data before indexing. It also interacts with the MongoDB database using the \texttt{db.connection} module.
+
+Overall, the indexer package provides functionality to create, load, and manage indexes for a MongoDB database. It incorporates data cleaning, metadata management, and indexing operations, ensuring efficient retrieval and analysis of the indexed data.
+
+\subsection{APIRequester Package}
+
+The APIRequester package provides functionality for sending HTTP requests to an API. It includes the \texttt{APIRequester} class, which handles authentication and sending POST requests to the API endpoints.
+
+
+The \texttt{APIRequester} class is responsible for creating and sending HTTP requests to the API. It requires the base URL, username, and password for authentication. Here are the key methods of the \texttt{APIRequester} class:
+
+\begin{itemize}
+    \item \texttt{\_\_init\_\_(base\_url, username, password)}: Initializes an \texttt{APIRequester} object with the base URL, username, and password.
+    \item \texttt{post\_update\_config\_endpoint(data)}: Sends a POST request to the 'update\_config' endpoint of the API with the provided configuration data. Returns the parsed JSON response if the request is successful, otherwise raises an exception with the corresponding status code.
+\end{itemize}
+
+The \texttt{APIRequester} class utilizes the \texttt{http.client} module to establish a connection with the API and send HTTP requests. It also utilizes the \texttt{base64} and \texttt{json} modules for authentication and parsing JSON responses, respectively. The \texttt{urllib.parse} module is used to parse the base URL.
+
+Overall, the APIRequester package provides a convenient way to authenticate and send POST requests to an API. It abstracts away the low-level details of establishing connections and handling authentication, allowing users to focus on interacting with the API and processing the responses.
+
+\subsection{API Server}
+
+The API server is implemented using the FastAPI framework. It provides several endpoints for handling different types of requests. The server supports basic authentication and uses a configuration manager and request wrapper to handle configuration updates and API requests, respectively.
+
+\subsubsection{API Server Setup}
+
+The server is set up using the FastAPI framework. It initializes the FastAPI application, sets up logging, and configures CORS middleware to handle cross-origin requests. The configuration file paths are defined, and instances of the ConfigManager, RequestWrapper, and IniConfig classes are created.
+
+\subsubsection{Authentication}
+
+The server supports basic authentication using the provided credentials. The \texttt{get\_current\_username} function validates the provided username and password against the configured credentials. If the credentials are incorrect, an HTTPException with status code 401 (Unauthorized) is raised.
+
+\subsubsection{Endpoints}
+
+The API server provides the following endpoints:
+
+\begin{itemize}
+    \item \texttt{GET /search\_ids/\{query\}}: Retrieves a list of document IDs matching the provided query.
+    \item \texttt{GET /alternate\_queries/\{query\}}: Retrieves a list of alternate queries based on the provided query.
+    \item \texttt{POST /fetch\_data/}: Fetches data for the specified document IDs.
+    \item \texttt{POST /update\_config}: Updates the configuration and saves it.
+\end{itemize}
+
+The \texttt{search\_ids} endpoint calls the \texttt{search\_ids} method of the \texttt{RequestWrapper} class asynchronously, using a ThreadPoolExecutor to handle the request concurrently. The result is returned as a list of document IDs.
+
+The \texttt{alternate\_queries} endpoint returns a static list of alternate queries.
+
+The \texttt{fetch\_data} endpoint calls the \texttt{fetch\_data} method of the \texttt{RequestWrapper} class asynchronously, using a ThreadPoolExecutor to handle the request concurrently. The result is returned as a list of dictionaries containing the fetched data for each document.
+
+The \texttt{update\_config} endpoint reads the updated configuration data from the HTTP request, saves it using the \texttt{ConfigManager}, and updates the \texttt{neighbour\_nodes} property of the \texttt{RequestWrapper}.
+
+\subsubsection{Running the Server}
+
+The server is run using the \texttt{uvicorn} package, which serves the FastAPI application. The host and port are read from the configuration file.
+
+Overall, the API server provides a RESTful API with authentication and support for concurrent requests. It allows users to search for document IDs, fetch data, and update the configuration of the system.
+
+\subsection{The \texttt{distributed} Package}
+
+The \texttt{distributed} package offers functionality for handling JSON documents stored in a distributed manner across multiple files. It includes the following key features:
+
+\subsubsection{Shard Calculation}
+The package provides a function \texttt{get\_shard(doc\_id, num\_shards)} to determine the shard ID based on the document ID and the total number of shards.
+
+\subsubsection{FastJsonLoader Class}
+This class manages the loading and management of JSON documents. It includes the following methods:
+
+\begin{itemize}
+    \item \texttt{\_\_init\_\_(...)}: The class constructor allows for setting parameters such as the folder path containing the JSON files, the number of documents per file, the node ID, the total node count, and the MongoDB collection for storing document IDs.
+    
+    \item \texttt{load\_ids()}: Loads the document IDs from MongoDB.
+    
+    \item \texttt{save\_ids()}: Saves the document IDs to MongoDB.
+    
+    \item \texttt{load\_documents()}: Reads JSON files from the specified folder and organizes the documents into compressed data files based on the desired number of documents per file. It also handles metadata about the document files.
+    
+    \item \texttt{get\_data(doc\_ids, sort\_by\_doc\_id=False)}: Retrieves data for the given document IDs. It can also sort the results based on the order of the provided doc\_ids.
+    
+    \item \texttt{insert\_documents(new\_documents)}: Inserts new documents into the JSON files.
+    
+    \item \texttt{delete\_documents(doc\_ids\_to\_delete)}: Deletes documents from the JSON files.
+    
+    \item \texttt{count\_documents\_in\_folder()}: Counts the total number of documents present in the specified folder.
+    
+    \item \texttt{get\_all\_documents()}: Retrieves all documents from the JSON files.
+    
+    \item \texttt{id\_file\_exists()}: Checks if the document IDs exist in MongoDB.
+\end{itemize}
+
+This package provides a convenient and efficient way to manage and work with distributed JSON documents across multiple files.
+
+
+\end{document}
+
+
+

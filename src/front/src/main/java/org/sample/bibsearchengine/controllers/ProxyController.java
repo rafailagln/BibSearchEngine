@@ -15,6 +15,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
+/**
+ * The type Proxy controller.
+ */
 @RestController
 @RequestMapping("/api")
 public class ProxyController {
@@ -32,6 +35,12 @@ public class ProxyController {
         }
     }
 
+    /**
+     * Fetch data for ids response entity.
+     *
+     * @param ids the ids
+     * @return the response entity
+     */
     @PostMapping("/fetch_data/")
     public ResponseEntity<?> fetchDataForIds(@RequestBody List<String> ids) {
         return callExternalApi(ids);

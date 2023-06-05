@@ -16,6 +16,9 @@ public class SearchController {
     private final SearchService searchService;
 
     public SearchController(SearchService searchService) {
+        if(searchService == null){
+            throw new IllegalArgumentException("SearchService cannot be null");
+        }
         this.searchService = searchService;
     }
 
@@ -27,12 +30,16 @@ public class SearchController {
 
     @PostMapping("/search")
     public String searchResults(@ModelAttribute("searchQuery") SearchQuery searchQuery, Model model) {
-        List<Integer> results = searchService.searchIds(searchQuery.getQuery());
-        List<String> alternativeQueries = searchService.alternativeQueries(searchQuery.getQuery());
-        model.addAttribute("results", results);
-        model.addAttribute("alternativeQueries", alternativeQueries);
+        if(searchQuery != null && searchQuery.getQuery() != null) {
+            try {
+                List<Integer> results = searchService.searchIds(searchQuery.getQuery());
+                List<String> alternativeQueries = searchService.alternativeQueries(searchQuery.getQuery());
+                model.addAttribute("results", results);
+                model.addAttribute("alternativeQueries", alternativeQueries);
+            } catch (IllegalArgumentException e) {
+                // Log error and handle it accordingly
+            }
+        }
         return "search";
     }
-
 }
-

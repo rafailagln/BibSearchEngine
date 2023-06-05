@@ -156,13 +156,15 @@ class TrieIndex:
         """
         keys = []
 
-        def traverse(node, prefix):
+        stack = [(self.root, "")]
+
+        while stack:
+            node, prefix = stack.pop()
             if node.values:
                 keys.append(prefix)
             for char, child_node in node.children.items():
-                traverse(child_node, prefix + char)
+                stack.append((child_node, prefix + char))
 
-        traverse(self.root, "")
         return keys
 
     def save(self, batch_size=2000):
