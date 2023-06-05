@@ -38,13 +38,14 @@ jobs:
           tar -xzvf Python-3.9.0.tgz
           cd Python-3.9.0
           ./configure && make && sudo make install
-          export PYTHON3_PATH=/usr/local/bin/python3
+          echo "PYTHON3_PATH=/usr/local/bin/python3" >> $GITHUB_ENV
         else
-          export PYTHON3_PATH=$(which python3)
+          echo "PYTHON3_PATH=$(which python3)" >> $GITHUB_ENV
         fi
-        ${PYTHON3_PATH} -m venv venv
+        ${{ env.PYTHON3_PATH }} -m venv venv
         source venv/bin/activate && pip install -r requirements.txt
     - name: Install build module and build Python package
       run: |
-        ${PYTHON3_PATH} -m pip install build
-        ${PYTHON3_PATH} -m build --sdist
+        source src/back/venv/bin/activate
+        ${{ env.PYTHON3_PATH }} -m pip install build
+        ${{ env.PYTHON3_PATH }} -m build --sdist
