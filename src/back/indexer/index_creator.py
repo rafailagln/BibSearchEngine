@@ -47,7 +47,7 @@ class IndexCreator:
             if index_collection.count_documents({}) == 0:
                 # Index collection is empty, create index and save to collection
                 logging.info("Creating index...")
-                est_total_size = (self.db.doc_id - 1) / 7
+                est_total_size = (self.db.doc_id - 1) // self.db.node_count
                 count = 0
                 progress_threshold = 100
                 for doc in docs:
