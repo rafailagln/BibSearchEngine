@@ -56,25 +56,32 @@ def count_documents_in_files(folder_path):
 #             return None
 
 def send_request(node_addr, request):
-    context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
-    context.load_verify_locations(ini_config.get_property('SSL', 'cert_path'))
+    """
+    Sends a request to a specified node address and receives the response.
 
+    Args:
+        node_addr (tuple): The address of the node in the form of (host, port).
+        request (dict): The request to be sent, which should be a JSON-serializable dictionary.
+
+    Returns:
+        The response received from the node, parsed as a JSON object.
+    """
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        with context.wrap_socket(sock, server_hostname=node_addr) as ssock:
-            try:
-                ssock.connect(node_addr)
-                send_message(json.dumps(request), ssock)
-                response = receive_message(ssock)
-            except socket.error as e:
-                raise e
-            finally:
-                ssock.close()
+        try:
+            sock.connect(node_addr)
+            send_message(json.dumps(request), sock)
+            response = receive_message(sock)
+        except socket.error as e:
+            # Re-raise the exception to propagate it further
+            raise e
+        finally:
+            sock.close()
 
-            try:
-                return json.loads(response)
-            except json.JSONDecodeError as e:
-                print(f"Failed to decode JSON response: {e}")
-                return None
+        try:
+            return json.loads(response)
+        except json.JSONDecodeError as e:
+            print(f"Failed to decode JSON response: {e}")
+            return None
 
 
 def execute_action(action, neighbor_nodes, node_id, attr1=None, response_callback=None):

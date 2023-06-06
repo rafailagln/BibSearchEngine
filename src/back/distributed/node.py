@@ -279,19 +279,15 @@ class DistributedNode:
         self.neighbour_nodes[self.node_id - 1]['first_boot'] = False
         self.config_manager.save_config(self.neighbour_nodes)
 
-        context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-        context.load_cert_chain(certfile=self.cert_path, keyfile=self.key_path, password=self.passphrase)
-
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0) as sock:
-            with context.wrap_socket(sock, server_side=True) as ssock:
-                ssock.bind((self.node_host, self.node_port))
-                ssock.listen(5)
-                print(f"Node {self.node_id} listening on port {self.node_port}")
+            sock.bind((self.node_host, self.node_port))
+            sock.listen(5)
+            print(f"Node {self.node_id} listening on port {self.node_port}")
 
-                while True:
-                    conn, addr = ssock.accept()
-                    print(f"Node {self.node_id}: Connection accepted from {addr}")
-                    threading.Thread(target=self.handle_request_wrapper, args=(conn,)).start()
+            while True:
+                conn, addr = sock.accept()
+                print(f"Node {self.node_id}: Connection accepted from {addr}")
+                threading.Thread(target=self.handle_request_wrapper, args=(conn,)).start()
 
     def handle_request_wrapper(self, conn):
         """
