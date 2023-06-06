@@ -2,6 +2,7 @@ import gzip
 import json
 import os
 import socket
+import ssl
 import struct
 import sys
 import time
@@ -9,7 +10,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 from configurations.read_config import IniConfig
 
-ini_config = IniConfig('../config.ini')
+ini_config = IniConfig('/Users/notaris/git/BibSearchEngine/src/back/config.ini')
 
 
 def count_documents_in_files(folder_path):
@@ -55,32 +56,25 @@ def count_documents_in_files(folder_path):
 #             return None
 
 def send_request(node_addr, request):
-    """
-    Sends a request to a specified node address and receives the response.
+    context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
+    context.load_verify_locations(ini_config.get_property('SSL', 'cert_path'))
 
-    Args:
-        node_addr (tuple): The address of the node in the form of (host, port).
-        request (dict): The request to be sent, which should be a JSON-serializable dictionary.
-
-    Returns:
-        The response received from the node, parsed as a JSON object.
-    """
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        try:
-            sock.connect(node_addr)
-            send_message(json.dumps(request), sock)
-            response = receive_message(sock)
-        except socket.error as e:
-            # Re-raise the exception to propagate it further
-            raise e
-        finally:
-            sock.close()
+        with context.wrap_socket(sock, server_hostname=node_addr) as ssock:
+            try:
+                ssock.connect(node_addr)
+                send_message(json.dumps(request), ssock)
+                response = receive_message(ssock)
+            except socket.error as e:
+                raise e
+            finally:
+                ssock.close()
 
-        try:
-            return json.loads(response)
-        except json.JSONDecodeError as e:
-            print(f"Failed to decode JSON response: {e}")
-            return None
+            try:
+                return json.loads(response)
+            except json.JSONDecodeError as e:
+                print(f"Failed to decode JSON response: {e}")
+                return None
 
 
 def execute_action(action, neighbor_nodes, node_id, attr1=None, response_callback=None):

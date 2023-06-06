@@ -2,6 +2,7 @@ import argparse
 import heapq
 import json
 import socket
+import ssl
 import sys
 import threading
 from collections import defaultdict
@@ -82,10 +83,10 @@ class DistributedNode:
         self.node_id = _node_id
         self.node_host = _node_host
         self.node_port = _node_port
-        self.passphrase = _passphrase
         self.api_url = api_url
         self.api_username = api_username
         self.api_password = api_password
+        self.passphrase = _passphrase
         self.cert_path = cert_path
         self.key_path = key_path
         self.folder_path = _load_folder_path
@@ -278,15 +279,19 @@ class DistributedNode:
         self.neighbour_nodes[self.node_id - 1]['first_boot'] = False
         self.config_manager.save_config(self.neighbour_nodes)
 
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0) as sock:
-            sock.bind((self.node_host, self.node_port))
-            sock.listen(5)
-            print(f"Node {self.node_id} listening on port {self.node_port}")
+        context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        context.load_cert_chain(certfile=self.cert_path, keyfile=self.key_path, password=self.passphrase)
 
-            while True:
-                conn, addr = sock.accept()
-                print(f"Node {self.node_id}: Connection accepted from {addr}")
-                threading.Thread(target=self.handle_request_wrapper, args=(conn,)).start()
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0) as sock:
+            with context.wrap_socket(sock, server_side=True) as ssock:
+                ssock.bind((self.node_host, self.node_port))
+                ssock.listen(5)
+                print(f"Node {self.node_id} listening on port {self.node_port}")
+
+                while True:
+                    conn, addr = ssock.accept()
+                    print(f"Node {self.node_id}: Connection accepted from {addr}")
+                    threading.Thread(target=self.handle_request_wrapper, args=(conn,)).start()
 
     def handle_request_wrapper(self, conn):
         """
