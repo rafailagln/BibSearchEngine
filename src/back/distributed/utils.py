@@ -10,7 +10,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 from configurations.read_config import IniConfig
 
-ini_config = IniConfig('/Users/notaris/git/BibSearchEngine/src/back/config.ini')
+ini_config = IniConfig('../config.ini')
 
 
 def count_documents_in_files(folder_path):
