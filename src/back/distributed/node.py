@@ -20,19 +20,6 @@ import concurrent.futures
 from threading import Lock
 
 
-def process_data(data):
-    """
-    Process the data.
-
-    Args:
-        data (str): The data to be processed.
-
-    Returns:
-        str: The processed data.
-    """
-    return f"Processed data: {data}"
-
-
 def split_ids(ids, n):
     """
     Split the list of IDs into multiple shards.
@@ -185,65 +172,6 @@ class DistributedNode:
             # Handles an unknown request.
             return json.dumps({'error': 'Unknown request'})
 
-    def get_leader(self):
-        """
-        Returns the leader node from the neighbour_nodes list.
-
-        Returns:
-            dict: The leader node.
-        """
-        sorted_nodes = sorted(self.neighbour_nodes, key=lambda x: x['id'])
-        return sorted_nodes[0]
-
-    def update_alive_nodes(self):
-        """
-        Updates the list of alive nodes by sending heartbeat requests to each node.
-
-        Returns:
-            list: A list of alive nodes.
-        """
-        alive_nodes = []
-
-        for _node in self.neighbour_nodes:
-            if _node['id'] == self.node_id:
-                alive_nodes.append(_node)
-                continue
-
-            try:
-                response = send_request((_node['host'], _node['port']), {
-                    'action': 'heartbeat'
-                })
-
-                if response and response.get('status') == 'OK':
-                    alive_nodes.append(_node)
-            except Exception as e:
-                print(f"Failed to send heartbeat to node {_node['id']}: {e}")
-
-        return alive_nodes
-
-    def notify_nodes_of_leader(self, leader):
-        """
-        Notifies the nodes in the neighbour_nodes list about the new leader.
-
-        Args:
-            leader (dict): The new leader node.
-
-        Returns:
-            None
-        """
-        for _node in self.neighbour_nodes:
-            if _node['id'] != self.node_id:
-                try:
-                    send_request((_node['host'], _node['port']), {
-                        'action': 'set_leader',
-                        'leader': leader
-                    })
-                    print(f"Node {self.node_id}: Notified node {_node['id']} of the new leader {leader['id']}")
-                except Exception as e:
-                    print(
-                        f"Node {self.node_id}: Failed to notify node {_node['id']} of the new leader {leader['id']}."
-                        f" {e}")
-
     # run without SSL encryption
     def run(self):
         """
@@ -261,13 +189,16 @@ class DistributedNode:
         if not self.neighbour_nodes[self.node_id - 1]['first_boot']:
             # get config from other nodes
             for _node in self.neighbour_nodes:
-                if self.node_id != _node['id']:
-                    response = send_request((_node['host'], _node['port']), {
-                        'action': 'get_config'
-                    })
-                    if response.get('status') == 'OK':
-                        self.neighbour_nodes = response['config']
-                        break
+                if self.node_id != _node['id'] and _node['alive']:
+                    try:
+                        response = send_request((_node['host'], _node['port']), {
+                            'action': 'get_config'
+                        })
+                        if response.get('status') == 'OK':
+                            self.neighbour_nodes = response['config']
+                            break
+                    except:
+                        print('Failed to get config from node ' + str(_node['id']))
             # Start db and index
             self.db.load_documents()
             self.indexer.create_load_index()
@@ -318,7 +249,6 @@ class DistributedNode:
         execute_action('heartbeat', self.neighbour_nodes, self.node_id)
         self.send_load_documents()
 
-    # TODO: all leader
     def send_load_documents(self):
         """
         Sends load_documents commands to the leader and other nodes.
@@ -331,6 +261,7 @@ class DistributedNode:
         load_documents_thread.start()
         # send load_documents commands to all other nodes
         execute_action('load_documents', self.neighbour_nodes, self.node_id)
+        load_documents_thread.join()
         self.send_create_index()
 
     def send_create_index(self):
@@ -362,47 +293,6 @@ class DistributedNode:
         shard_id = int(sha256(key.encode()).hexdigest(), 16) % num_shards
         return self.neighbour_nodes[shard_id]
 
-    def forward_request(self, _node, data, to_leader=False):
-        """
-        Forwards a request to a specified node.
-
-        Args:
-            _node (dict): The node to which the request is to be forwarded.
-            data (dict): The data to be sent in the request.
-            to_leader (bool): A flag indicating if the request is to be
-                              forwarded to the leader.
-
-        Returns:
-            str: The response from the forwarded request.
-        """
-        node_addr = (_node['host'], _node['port'])
-
-        try:
-            response = send_request(node_addr, data)
-            return json.dumps(response)
-        except Exception as e:
-            if to_leader:
-                print(f"Node {self.node_id}: Failed to forward request to leader {_node['id']}. {e}")
-                self.neighbour_nodes = self.update_alive_nodes()
-                leader = self.get_leader()
-                self.current_leader = leader
-                self.notify_nodes_of_leader(leader)
-
-                if leader['id'] == self.node_id:
-                    print(f"Node {self.node_id} is now the leader")
-                    return json.dumps({
-                        'worker_id': self.node_id,
-                        'result': process_data(data['data'])
-                    })
-                else:
-                    print(f"Node {self.node_id}: Forwarding request to new leader {leader['id']}")
-                    leader_addr = (leader['host'], leader['port'])
-                    response = send_request(leader_addr, data)
-                    return json.dumps(response)
-            else:
-                print(f"Node {self.node_id}: Failed to forward request to node {_node['id']}. {e}")
-                return json.dumps({'error': f"Failed to forward request to node {_node['id']}"})
-
     def update_config(self, _config_file):
         """
         Updates the local configuration file with the current neighbour node information.
@@ -418,10 +308,10 @@ class DistributedNode:
             config['nodes'] = self.neighbour_nodes
             json.dump(config, f, indent=4)
 
-    # TODO: use forward_request function instead of sending plain request
     def handle_get_data(self, data):
         """
-        Handles the 'get_data' action in the request.
+        Handles the 'get_data' action and forwards the request
+        to the appropriate nodes.
 
         Args:
             data (dict): The request data.
@@ -466,6 +356,20 @@ class DistributedNode:
             results_dict[_node] = get_data_results
 
     def thread_safe_get_data_request(self, _node, value, results_dict):
+        """
+            Sends a thread-safe get data request to a specified node.
+
+            Args:
+                _node (int): The index of the node to send the request to.
+                value (int): The value to send with the request.
+                results_dict (dict): A dictionary to store the results.
+
+            Raises:
+                socket.error: If there is an error with the socket connection.
+
+            Returns:
+                None
+        """
         try:
             response = send_request(
                 (self.neighbour_nodes[_node - 1]['host'], self.neighbour_nodes[_node - 1]['port']), {
@@ -475,16 +379,17 @@ class DistributedNode:
             with self.results_lock:
                 results_dict[_node] = response_results
         except socket.error:
-            self.neighbour_nodes[self.neighbour_nodes[_node - 1]]['alive'] = False
+            self.neighbour_nodes[_node - 1]['alive'] = False
             self.config_manager.save_config(self.neighbour_nodes)
-            execute_action('update_alive', self.neighbour_nodes, self.node_id, {_node['id']: False})
+            execute_action('update_alive', self.neighbour_nodes, self.node_id, {str(_node): False})
             api_requester = APIRequester(self.api_url, self.api_username, self.api_password)
             api_response = api_requester.post_update_config_endpoint(self.neighbour_nodes)
             print('Update api config response:', api_response)
 
     def search_ids(self, data):
         """
-        Searches for IDs based on the given query.
+        Searches for IDs based on the given query. It forwards the
+        request to all other nodes.
 
         Args:
             data (dict): The request data containing the query to be searched.
@@ -508,7 +413,8 @@ class DistributedNode:
                     if _node['id'] == self.node_id:
                         futures.append(executor.submit(self.thread_safe_search_ids, query, results))
                     else:
-                        futures.append(executor.submit(self.thread_safe_search_ids_request, _node, query, results))
+                        futures.append(executor.submit(self.thread_safe_search_ids_request, _node['id'],
+                                                       query, results))
 
                 for future in concurrent.futures.as_completed(futures):
                     try:
@@ -526,18 +432,32 @@ class DistributedNode:
             results.update(search_results)
 
     def thread_safe_search_ids_request(self, _node, query, results):
+        """
+            Sends a thread-safe search IDs request to a specified node.
+
+            Args:
+                _node (int): The node to send the request to.
+                query (str): The query string.
+                results (dict): A dictionary to store the results.
+
+            Raises:
+                socket.error: If there is an error with the socket connection.
+
+            Returns:
+                None
+        """
         try:
             response = send_request(
-                (_node['host'], _node['port']), {
+                (self.neighbour_nodes[_node - 1]['host'], self.neighbour_nodes[_node - 1]['port']), {
                     'action': 'search_ids', 'forwarded': True, 'query': query
                 })
             response_results = json.loads(response.get('results'))['results']
             with self.results_lock:
                 results.update(response_results)
         except socket.error:
-            self.neighbour_nodes[_node['id'] - 1]['alive'] = False
+            self.neighbour_nodes[_node - 1]['alive'] = False
             self.config_manager.save_config(self.neighbour_nodes)
-            execute_action('update_alive', self.neighbour_nodes, self.node_id, {_node['id']: False})
+            execute_action('update_alive', self.neighbour_nodes, self.node_id, {str(_node): False})
             api_requester = APIRequester(self.api_url, self.api_username, self.api_password)
             api_response = api_requester.post_update_config_endpoint(self.neighbour_nodes)
             print('Update api config response:', api_response)
