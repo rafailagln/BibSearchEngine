@@ -3,6 +3,7 @@ from collections import defaultdict
 
 from indexer.index_creator import TITLE, ABSTRACT
 from preprocessor.data_cleaner import DataCleaner
+from ranker.BM25FParallel import BM25FParallel
 from ranker.ranking_algorithms import BooleanInformationRetrieval, BM25F
 
 
@@ -21,7 +22,7 @@ class SearchEngine:
         self.cleaner = DataCleaner()
         self.max_results = max_results
         self.bir = BooleanInformationRetrieval(self.inverted_index, self.max_results)
-        self.bm25f = BM25F(self.inverted_index, total_docs=self.index_metadata.total_docs)
+        self.bm25f = BM25FParallel(self.inverted_index, total_docs=self.index_metadata.total_docs)
 
     def search(self, query):
         """

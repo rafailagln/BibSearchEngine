@@ -2,6 +2,10 @@ from collections import defaultdict
 from db.connection import MongoDBConnection
 
 
+def default_int():
+    return defaultdict(int)
+
+
 class Metadata:
 
     def __init__(self, db_name='M151', metadata_collection='Metadata'):
@@ -15,7 +19,7 @@ class Metadata:
         Returns:
             None
         """
-        self.length_field = defaultdict(lambda: defaultdict(int))
+        self.length_field = defaultdict(default_int)
         self.average_length = defaultdict(float)
         self.referenced_by = defaultdict(int)
         self.total_docs = 0
