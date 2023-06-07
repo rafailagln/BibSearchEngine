@@ -1,9 +1,12 @@
 import heapq
-import math
-import time
-from collections import defaultdict
+import threading
+
 from indexer.index_creator import TITLE, ABSTRACT
 import concurrent.futures
+from concurrent.futures import ThreadPoolExecutor
+from collections import defaultdict
+import math
+import time
 
 
 # def compute_doc_score(docs, query_terms, fields_weight_dict, length_field, avg_lf, idf, tf_c, k1, b):
@@ -27,93 +30,75 @@ import concurrent.futures
 
 class BM25F:
 
-    def __init__(self, inverted_index, total_docs):
-        """
-        Constructor method for the BM25F class.
-
-        Args:
-            inverted_index: The inverted index used for scoring.
-            total_docs: The total number of documents in the collection.
-        """
+    def __init__(self, inverted_index, total_docs, num_threads=2):
         self.inverted_index = inverted_index
         self.total_docs = total_docs
+        self.num_threads = num_threads
+        self.lock = threading.Lock()
 
     def update_index(self, inverted_index):
-        """
-        Updates the inverted index used for scoring.
-
-        Args:
-            inverted_index: The updated inverted index.
-        """
         self.inverted_index = inverted_index
 
     def update_total_docs(self, total_docs):
-        """
-        Updates the total number of documents in the collection.
-
-        Args:
-            total_docs: The updated total number of documents.
-        """
         self.total_docs = total_docs
 
     def bm25f(self, docs, query_terms, fields_weight_dict, length_field, avg_lf):
-        """
-        Calculates the BM25F score for a list of documents and a query.
-        The score is calculated for each field and then summed up. The final
-        score is the sum of the scores of each field. The type of BM25F is:
-        score(Q, D) = Σ [ (Wf * tf(qi, Ff, D)) * (k1_f + 1) ] /
-                        [ Wf * tf(qi, Ff, D) + k1_f * (1 - b_f + b_f * Lf(D) / avgLf) ]
-
-        Args:
-            docs: List of document IDs to be scored.
-            query_terms: List of terms in the query.
-            fields_weight_dict: Dictionary containing the weight for each field.
-            length_field: Dictionary with document IDs and the number of words in each field.
-            avg_lf: Dictionary with the average length of each field.
-
-        Returns:
-            score: Dictionary of document IDs and their corresponding BM25F scores.
-        """
         score = defaultdict(float)
-        start_time = time.time()
-        idf = self._idf_calculation(query_terms)
-        end_time = time.time()
-        time_diff = end_time - start_time
-        print("Time elapsed (idf calculation):", time_diff, "seconds")
 
-        start_time = time.time()
+        idf = self._idf_calculation(query_terms)
+
         tf_c = self._tf_field_calculation(query_terms)
-        end_time = time.time()
-        time_diff = end_time - start_time
-        print("Time elapsed (TF_FIELD):", time_diff, "seconds")
-        start_time = time.time()
-        # from all doc_ids that we will score
+        docs_chunks = self.chunk_it(docs, self.num_threads)
+
+        with ThreadPoolExecutor(max_workers=self.num_threads) as executor:
+            futures = {
+                executor.submit(self.calculate_score, chunk, query_terms, fields_weight_dict, length_field, avg_lf, idf,
+                                tf_c): chunk for chunk in docs_chunks}
+
+        for future in concurrent.futures.as_completed(futures):
+            chunk = futures[future]
+            try:
+                chunk_scores = future.result()
+                with self.lock:
+                    for doc_id, s in chunk_scores.items():
+                        score[doc_id] = s
+            except Exception as exc:
+                print(f'Generated an exception: {exc}')
+
+        return score
+
+    def calculate_score(self, docs, query_terms, fields_weight_dict, length_field, avg_lf, idf, tf_c):
+        score = defaultdict(float)
+
         for doc_id in docs:
             temp_score = 0.0
-            # from each field that we want to give a score
             for field in fields_weight_dict:
-                # not all documents have all fields
                 if length_field[str(doc_id)][str(field)] == 0:
                     continue
                 factor = self._algorith_parameters()[field]["k1"] * (1 - self._algorith_parameters()[field]["b"] +
                                                                      self._algorith_parameters()[field]["b"] *
                                                                      (length_field[str(doc_id)][str(field)] /
                                                                       avg_lf[str(field)]))
-                # for every term of the query
                 for term in query_terms:
                     tf = fields_weight_dict[field] * tf_c[term][doc_id][field]
-                    # if term do not exist in this field of document, we don't have to compute score...
                     if tf == 0:
                         continue
                     temp_score += idf[term] * ((tf * (self._algorith_parameters()[field]["k1"] + 1)) / (tf + factor))
 
             score[doc_id] = temp_score
 
-        end_time = time.time()
-        time_diff = end_time - start_time
-        print("Time elapsed (BM25F search):", time_diff, "seconds")
-
         return score
+
+    def chunk_it(self, docs, num):
+        avg = len(docs) // num
+        out = []
+        last = 0.0
+
+        while last < len(docs):
+            out.append(docs[int(last):int(last + avg)])
+            last += avg
+
+        return out
 
     # def bm25f(self, docs, query_terms, fields_weight_dict, length_field, avg_lf, k1=1.2, b=0.75, chunk_size=2000):
     #     score = defaultdict(float)
