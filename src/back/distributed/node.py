@@ -188,13 +188,16 @@ class DistributedNode:
         if not self.neighbour_nodes[self.node_id - 1]['first_boot']:
             # get config from other nodes
             for _node in self.neighbour_nodes:
-                if self.node_id != _node['id']:
-                    response = send_request((_node['host'], _node['port']), {
-                        'action': 'get_config'
-                    })
-                    if response.get('status') == 'OK':
-                        self.neighbour_nodes = response['config']
-                        break
+                if self.node_id != _node['id'] and _node['alive']:
+                    try:
+                        response = send_request((_node['host'], _node['port']), {
+                            'action': 'get_config'
+                        })
+                        if response.get('status') == 'OK':
+                            self.neighbour_nodes = response['config']
+                            break
+                    except:
+                        print('Failed to get config from node ' + str(_node['id']))
             # Start db and index
             self.db.load_documents()
             self.indexer.create_load_index()
@@ -375,9 +378,9 @@ class DistributedNode:
             with self.results_lock:
                 results_dict[_node] = response_results
         except socket.error:
-            self.neighbour_nodes[self.neighbour_nodes[_node - 1]]['alive'] = False
+            self.neighbour_nodes[_node - 1]['alive'] = False
             self.config_manager.save_config(self.neighbour_nodes)
-            execute_action('update_alive', self.neighbour_nodes, self.node_id, {_node['id']: False})
+            execute_action('update_alive', self.neighbour_nodes, self.node_id, {str(_node): False})
             api_requester = APIRequester(self.api_url, self.api_username, self.api_password)
             api_response = api_requester.post_update_config_endpoint(self.neighbour_nodes)
             print('Update api config response:', api_response)
@@ -409,7 +412,8 @@ class DistributedNode:
                     if _node['id'] == self.node_id:
                         futures.append(executor.submit(self.thread_safe_search_ids, query, results))
                     else:
-                        futures.append(executor.submit(self.thread_safe_search_ids_request, _node, query, results))
+                        futures.append(executor.submit(self.thread_safe_search_ids_request, _node['id'],
+                                                       query, results))
 
                 for future in concurrent.futures.as_completed(futures):
                     try:
@@ -443,16 +447,16 @@ class DistributedNode:
         """
         try:
             response = send_request(
-                (_node['host'], _node['port']), {
+                (self.neighbour_nodes[_node - 1]['host'], self.neighbour_nodes[_node - 1]['port']), {
                     'action': 'search_ids', 'forwarded': True, 'query': query
                 })
             response_results = json.loads(response.get('results'))['results']
             with self.results_lock:
                 results.update(response_results)
         except socket.error:
-            self.neighbour_nodes[_node['id'] - 1]['alive'] = False
+            self.neighbour_nodes[_node - 1]['alive'] = False
             self.config_manager.save_config(self.neighbour_nodes)
-            execute_action('update_alive', self.neighbour_nodes, self.node_id, {_node['id']: False})
+            execute_action('update_alive', self.neighbour_nodes, self.node_id, {_node: False})
             api_requester = APIRequester(self.api_url, self.api_username, self.api_password)
             api_response = api_requester.post_update_config_endpoint(self.neighbour_nodes)
             print('Update api config response:', api_response)
