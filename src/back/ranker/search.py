@@ -192,7 +192,7 @@ class SearchEngine:
         """
         return {
             TITLE: 2,
-            ABSTRACT: 1.2
+            ABSTRACT: 1.5
         }
 
     def update_inverted_index(self, new_inverted_index):

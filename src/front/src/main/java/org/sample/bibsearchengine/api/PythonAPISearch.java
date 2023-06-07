@@ -43,7 +43,11 @@ public class PythonAPISearch {
         HttpClient client = HttpClient.newHttpClient();
         String encodedQuery = null;
 
-        encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8).replaceAll("\\+", "%20");
+        query = query.replaceAll("\\/", " ");
+
+        encodedQuery = URLEncoder.encode(query, StandardCharsets.UTF_8)
+                .replaceAll("\\+", "%20")
+                .replaceAll("\\\\", "%5C");
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(PYTHON_API_URL + "search_ids/" + encodedQuery))
