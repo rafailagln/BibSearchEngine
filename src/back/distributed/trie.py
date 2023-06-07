@@ -91,6 +91,8 @@ class TrieIndex:
             values (list): A list of values associated with the key.
         """
         node = self.root
+        if node is None:
+            return []
         for char in key:
             if char not in node.children:
                 return []
