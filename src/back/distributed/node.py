@@ -456,7 +456,7 @@ class DistributedNode:
         except socket.error:
             self.neighbour_nodes[_node - 1]['alive'] = False
             self.config_manager.save_config(self.neighbour_nodes)
-            execute_action('update_alive', self.neighbour_nodes, self.node_id, {_node: False})
+            execute_action('update_alive', self.neighbour_nodes, self.node_id, {str(_node): False})
             api_requester = APIRequester(self.api_url, self.api_username, self.api_password)
             api_response = api_requester.post_update_config_endpoint(self.neighbour_nodes)
             print('Update api config response:', api_response)
