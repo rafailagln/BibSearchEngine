@@ -15,6 +15,8 @@ from configurations.read_config import IniConfig, JsonConfig
 from distributed.config_manager import ConfigManager
 from distributed.fast_json_loader import FastJsonLoader
 from distributed.utils import send_request, receive_message, send_message, execute_action
+import concurrent.futures
+from threading import Lock
 
 
 def process_data(data):
@@ -79,6 +81,7 @@ class DistributedNode:
             None
         """
 
+        self.results_lock = Lock()
         self.node_id = _node_id
         self.node_host = _node_host
         self.node_port = _node_port
@@ -427,40 +430,56 @@ class DistributedNode:
         """
         ids = data.get('ids', '')
         if not data.get('forwarded'):
-            results = []
+            results_dict = {}
             ids_per_node = split_ids(ids, self.db.node_count)
-            for _node, value in ids_per_node.items():
-                # TODO: THIS IS STUPID. MUST CHANGE!
-                if isinstance(_node, dict):
-                    _node = _node['id']
-                if not self.neighbour_nodes[_node - 1]['alive']:
-                    continue
 
-                if _node == self.node_id:
-                    results.extend(self.db.get_data(value))
-                else:
-                    data['forwarded'] = True
-                    data['ids'] = value
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                futures = []
+                for _node, value in ids_per_node.items():
+                    if isinstance(_node, dict):
+                        _node = _node['id']
+                    if not self.neighbour_nodes[_node - 1]['alive']:
+                        continue
+
+                    if _node == self.node_id:
+                        futures.append(executor.submit(self.thread_safe_get_data, _node, value, results_dict))
+                    else:
+                        futures.append(executor.submit(self.thread_safe_get_data_request, _node, value, results_dict))
+
+                for future in concurrent.futures.as_completed(futures):
                     try:
-                        response = send_request((self.neighbour_nodes[_node - 1]['host'],
-                                                 self.neighbour_nodes[_node - 1]['port']), {
-                                                    'action': 'get_data', 'forwarded': True, 'ids': value
-                                                })
-                        # response = self.forward_request(self.neighbor_nodes[node - 1], data)
-                        # TODO: This is overhead. Needs optimization. It returns a string and
-                        #  is needed to convert to JSON.
-                        results.extend(json.loads(response.get('results'))['results'])
-                    except socket.error:
-                        self.neighbour_nodes[self.neighbour_nodes[_node - 1]]['alive'] = False
-                        self.config_manager.save_config(self.neighbour_nodes)
-                        execute_action('update_alive', self.neighbour_nodes, self.node_id, {_node['id']: False})
-                        api_requester = APIRequester(self.api_url, self.api_username, self.api_password)
-                        api_response = api_requester.post_update_config_endpoint(self.neighbour_nodes)
-                        print('Update api config response:', api_response)
+                        future.result()
+                    except Exception as e:
+                        print(f"An error occurred: {e}")
 
+            results = []
+            for _node in sorted(results_dict.keys()):
+                results.extend(results_dict[_node])
             return results
         else:
             return json.dumps({'results': self.db.get_data(ids)})
+
+    def thread_safe_get_data(self, _node, value, results_dict):
+        get_data_results = self.db.get_data(value)
+        with self.results_lock:
+            results_dict[_node] = get_data_results
+
+    def thread_safe_get_data_request(self, _node, value, results_dict):
+        try:
+            response = send_request(
+                (self.neighbour_nodes[_node - 1]['host'], self.neighbour_nodes[_node - 1]['port']), {
+                    'action': 'get_data', 'forwarded': True, 'ids': value
+                })
+            response_results = json.loads(response.get('results'))['results']
+            with self.results_lock:
+                results_dict[_node] = response_results
+        except socket.error:
+            self.neighbour_nodes[self.neighbour_nodes[_node - 1]]['alive'] = False
+            self.config_manager.save_config(self.neighbour_nodes)
+            execute_action('update_alive', self.neighbour_nodes, self.node_id, {_node['id']: False})
+            api_requester = APIRequester(self.api_url, self.api_username, self.api_password)
+            api_response = api_requester.post_update_config_endpoint(self.neighbour_nodes)
+            print('Update api config response:', api_response)
 
     def search_ids(self, data):
         """
@@ -478,34 +497,49 @@ class DistributedNode:
         query = data.get('query', '')
         if not data.get('forwarded'):
             results = defaultdict(float)
-            for _node in self.neighbour_nodes:
-                if not _node['alive']:
-                    continue
 
-                if _node['id'] == self.node_id:
-                    results.update(self.engine.search(query))
-                else:
-                    data['forwarded'] = True
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                futures = []
+                for _node in self.neighbour_nodes:
+                    if not _node['alive']:
+                        continue
+
+                    if _node['id'] == self.node_id:
+                        futures.append(executor.submit(self.thread_safe_search_ids, query, results))
+                    else:
+                        futures.append(executor.submit(self.thread_safe_search_ids_request, _node, query, results))
+
+                for future in concurrent.futures.as_completed(futures):
                     try:
-                        response = send_request(
-                            (_node['host'], _node['port']), {
-                                'action': 'search_ids', 'forwarded': True, 'query': query
-                            })
+                        future.result()
+                    except Exception as e:
+                        print(f"An error occurred: {e}")
 
-                        # response = self.forward_request(self.neighbor_nodes[node - 1], data)
-                        # TODO: This is overhead. Needs optimization. It returns a string and
-                        #  is needed to convert to JSON.
-                        results.update(json.loads(response.get('results'))['results'])
-                    except socket.error:
-                        self.neighbour_nodes[_node['id'] - 1]['alive'] = False
-                        self.config_manager.save_config(self.neighbour_nodes)
-                        execute_action('update_alive', self.neighbour_nodes, self.node_id, {_node['id']: False})
-                        api_requester = APIRequester(self.api_url, self.api_username, self.api_password)
-                        api_response = api_requester.post_update_config_endpoint(self.neighbour_nodes)
-                        print('Update api config response:', api_response)
             return list(map(int, heapq.nlargest(self.max_results, results.keys(), key=results.get)))
         else:
             return json.dumps({'results': self.engine.search(query)})
+
+    def thread_safe_search_ids(self, query, results):
+        search_results = self.engine.search(query)
+        with self.results_lock:
+            results.update(search_results)
+
+    def thread_safe_search_ids_request(self, _node, query, results):
+        try:
+            response = send_request(
+                (_node['host'], _node['port']), {
+                    'action': 'search_ids', 'forwarded': True, 'query': query
+                })
+            response_results = json.loads(response.get('results'))['results']
+            with self.results_lock:
+                results.update(response_results)
+        except socket.error:
+            self.neighbour_nodes[_node['id'] - 1]['alive'] = False
+            self.config_manager.save_config(self.neighbour_nodes)
+            execute_action('update_alive', self.neighbour_nodes, self.node_id, {_node['id']: False})
+            api_requester = APIRequester(self.api_url, self.api_username, self.api_password)
+            api_response = api_requester.post_update_config_endpoint(self.neighbour_nodes)
+            print('Update api config response:', api_response)
 
 
 if __name__ == '__main__':
