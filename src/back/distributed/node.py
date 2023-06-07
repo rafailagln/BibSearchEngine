@@ -330,6 +330,7 @@ class DistributedNode:
         load_documents_thread.start()
         # send load_documents commands to all other nodes
         execute_action('load_documents', self.neighbour_nodes, self.node_id)
+        load_documents_thread.join()
         self.send_create_index()
 
     def send_create_index(self):
