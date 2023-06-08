@@ -1,20 +1,20 @@
 class InfoClass:
-    def __init__(self, type, position, docid) -> None:
+    def __init__(self, _type, position, doc_id) -> None:
         """
         Initializes an instance of the InfoClass.
 
         Args:
-            type (str): The type of the information.
+            _type (str): The type of the information.
             position (int): The position of the information.
-            docid (int): The document ID associated with the information.
+            doc_id (int): The document ID associated with the information.
 
         Returns:
             None
         """
         super().__init__()
-        self._type = type
+        self._type = _type
         self._position = position
-        self._docid = docid
+        self._doc_id = doc_id
 
     def __json__(self):
         """
@@ -26,5 +26,5 @@ class InfoClass:
         return {
             'type': self._type,
             'position': self._position,
-            'docid': self._docid
+            'docid': self._doc_id
         }

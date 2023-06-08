@@ -153,9 +153,6 @@ class TrieIndex:
         """
         Retrieves all keys stored in the trie index.
 
-        Args:
-            None
-
         Returns:
             keys (list): A list of keys in the trie index.
         """
@@ -216,9 +213,6 @@ class TrieIndex:
         """
         Loads the trie index from MongoDB and stores it as a TrieIndex (trie) in memory.
 
-        Args:
-            None
-
         Returns:
             self (TrieIndex): The loaded TrieIndex object.
         """
@@ -244,9 +238,6 @@ class TrieIndex:
     def is_empty(self):
         """
         Checks if the trie index is empty.
-
-        Args:
-            None
 
         Returns:
             empty (bool): True if the trie index is empty, False otherwise.

@@ -261,18 +261,18 @@ class FastJsonLoader:
 
         Args:
             doc_ids (list): A list of document IDs to retrieve data for.
-            sort_by_doc_id (bool): Indicates whether to sort the results by doc_id. If set to True,
-                the results will be sorted based on the order of the provided doc_ids.
+            sort_by_doc_id (bool, optional): Indicates whether to sort the results by doc_id. If set to True,
+                the results will be sorted based on the order of the provided doc_ids. Default is False.
 
         Returns:
             list: A list of dictionaries containing the retrieved data. Each dictionary represents a document
-                and contains the following fields:
-                - 'order' (int): The order of the document ID in the input list (only present if sort_by_doc_id is True).
-                - 'doc_id' (int): The ID of the document.
-                - 'title' (str): The title of the document.
-                - 'abstract' (str): The abstract of the document.
-                - 'URL' (str): The URL of the document.
-                - 'referenced_by' (int): The number of times the document is referenced by other documents.
+            and contains the following fields:
+                'order' (int): The order of the document ID in the input list (only present if sort_by_doc_id is True).
+                'doc_id' (int): The ID of the document.
+                'title' (str): The title of the document.
+                'abstract' (str): The abstract of the document.
+                'URL' (str): The URL of the document.
+                'referenced_by' (int): The number of times the document is referenced by other documents.
         """
         file_buckets = {}
         doc_id_order = {doc_id: i for i, doc_id in enumerate(doc_ids)}

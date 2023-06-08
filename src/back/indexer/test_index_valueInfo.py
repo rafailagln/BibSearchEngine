@@ -18,7 +18,7 @@ class TestInfoClass(unittest.TestCase):
         """
         self.assertEqual(self.info_class._type, self.test_type)
         self.assertEqual(self.info_class._position, self.test_position)
-        self.assertEqual(self.info_class._docid, self.test_docid)
+        self.assertEqual(self.info_class._doc_id, self.test_docid)
 
     def test_json(self):
         """

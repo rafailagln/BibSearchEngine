@@ -192,8 +192,8 @@ class DistributedNode:
                         if response.get('status') == 'OK':
                             self.neighbour_nodes = response['config']
                             break
-                    except:
-                        logger.log_info('Failed to get config from node ' + str(_node['id']))
+                    except socket.error as e:
+                        logger.log_info(f"Failed to get config from node {_node['id']} with error {e}")
             # Start db and index
             self.db.load_documents()
             self.indexer.create_load_index()

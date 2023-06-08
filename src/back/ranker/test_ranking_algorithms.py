@@ -4,6 +4,7 @@ from unittest.mock import MagicMock
 from ranker import BM25F, BooleanInformationRetrieval
 from indexer.index_creator import TITLE, ABSTRACT
 
+
 # Unit tests
 class TestBM25F(unittest.TestCase):
     def setUp(self):
@@ -32,6 +33,7 @@ class TestBM25F(unittest.TestCase):
             }
         }
         self.assertEqual(self.bm25f._algorith_parameters(), expected_output)
+
 
 class TestBooleanInformationRetrieval(unittest.TestCase):
     def setUp(self):
@@ -64,7 +66,8 @@ class TestBM25FComplex(unittest.TestCase):
     #     self.assertAlmostEqual(idf_dict["test2"], 0.693147, delta=0.000001)
 
     def test_tf_field_calculation(self):
-        self.inverted_index.search = MagicMock(return_value=[("doc1", 1, TITLE), ("doc1", 2, TITLE), ("doc2", 1, ABSTRACT)])
+        self.inverted_index.search = MagicMock(
+            return_value=[("doc1", 1, TITLE), ("doc1", 2, TITLE), ("doc2", 1, ABSTRACT)])
         tf_results = self.bm25f._tf_field_calculation(["test"])
         self.assertEqual(tf_results["test"]["doc1"][TITLE], 2)
         self.assertEqual(tf_results["test"]["doc2"][ABSTRACT], 1)
@@ -76,6 +79,7 @@ class TestBooleanInformationRetrievalComplex(unittest.TestCase):
         self.boolean_IR = BooleanInformationRetrieval(self.inverted_index, max_results=2)
 
     def test_boolean_search(self):
-        self.inverted_index.search = MagicMock(return_value=[("doc1", 1, TITLE), ("doc1", 2, ABSTRACT), ("doc2", 1, ABSTRACT)])
+        self.inverted_index.search = MagicMock(
+            return_value=[("doc1", 1, TITLE), ("doc1", 2, ABSTRACT), ("doc2", 1, ABSTRACT)])
         results = self.boolean_IR.boolean_search(["test"])
         self.assertEqual(results, ["doc1", "doc2"])
