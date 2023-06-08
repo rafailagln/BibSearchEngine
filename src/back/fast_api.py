@@ -11,6 +11,7 @@ from configurations.read_config import IniConfig
 from distributed.config_manager import ConfigManager
 from distributed.request_wrapper import RequestWrapper
 from logger import MyLogger
+from model.queries import generate_alternative_sentences
 
 logger = MyLogger()
 
@@ -91,7 +92,7 @@ def alternate_queries(query: str):
     Returns:
         A list of alternate queries.
     """
-    return ['test1', 'test2', 'test3', 'test4', 'test5']
+    return generate_alternative_sentences(query)
 
 
 @app.post('/fetch_data/', response_model=List[dict])

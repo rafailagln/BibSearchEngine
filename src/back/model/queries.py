@@ -27,7 +27,7 @@ def generate_alternative_sentences(input_phrase, num_sentences=5):
             new_sentence.append(new_word)
         new_sentences.append(' '.join(new_sentence))
 
-    return [new_sentences.replace('_', ' ') for phrase in new_sentences]
+    return [sentence.replace('_', ' ') for sentence in new_sentences]
 
 # def generate_phrases_from_list(phrases_list):
 #     separated_output = [phrase.replace('_', ' ') for phrase in phrases_list]
