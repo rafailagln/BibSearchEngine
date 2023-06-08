@@ -179,9 +179,10 @@ process works:
 
 The mathematical formula of the BM25F algorith is:
 
-\begin{equation}
-    \text{{score}}(Q, D) = \sum_{i=1}^{n} \text{{IDF}}(q_i) \cdot \left[ \frac{\sum_{j=1}^{m} W_{f_j} \cdot \text{{TF}}(q_i, F_{f_j}, D) \cdot (k1_{f_j} + 1)}{\sum_{j=1}^{m} W_{f_j} \cdot \text{{TF}}(q_i, F_{f_j}, D) + k1_{f_j} \cdot (1 - b_{f_j} + b_{f_j} \cdot \frac{\text{{length}}(F_{f_j}, D)}{\text{{avg\_length}}(F_{f_j})})} \right]
-\end{equation}
+\begin{multline}
+    \text{{score}}(Q, D) = \sum_{i=1}^{n} \text{{IDF}}(q_i) \cdot \\
+    \left[ \frac{\sum_{j=1}^{m} W_{f_j} \cdot \text{{TF}}(q_i, F_{f_j}, D) \cdot (k1_{f_j} + 1)}{\sum_{j=1}^{m} W_{f_j} \cdot \text{{TF}}(q_i, F_{f_j}, D) + k1_{f_j} \cdot (1 - b_{f_j} + b_{f_j} \cdot \frac{\text{{length}}(F_{f_j}, D)}{\text{{avg\_length}}(F_{f_j})})} \right]
+\end{multline}
 
 Where:
 \begin{itemize}
