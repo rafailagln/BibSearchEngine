@@ -6,8 +6,6 @@ import sys
 import threading
 from collections import defaultdict
 
-from hashlib import sha256
-
 from indexer.index_creator import IndexCreator
 from ranker.search import SearchEngine
 from api_requester import APIRequester
@@ -273,35 +271,6 @@ class DistributedNode:
         create_load_index_thread.join()
         # change total docs in bm25f for leader
         self.engine.bm25f.update_total_docs(self.indexer.index_metadata.total_docs)
-
-    def get_shard(self, key):
-        """
-        Returns the shard for a given key.
-
-        Args:
-            key (str): The key for which shard is to be determined.
-
-        Returns:
-            dict: The shard node.
-        """
-        num_shards = len(self.neighbour_nodes)
-        shard_id = int(sha256(key.encode()).hexdigest(), 16) % num_shards
-        return self.neighbour_nodes[shard_id]
-
-    def update_config(self, _config_file):
-        """
-        Updates the local configuration file with the current neighbour node information.
-
-        Args:
-            _config_file (str): The path to the configuration file.
-
-        Returns:
-            None
-        """
-        with open(_config_file, 'w') as f:
-            config = json.load(f)
-            config['nodes'] = self.neighbour_nodes
-            json.dump(config, f, indent=4)
 
     def handle_get_data(self, data):
         """

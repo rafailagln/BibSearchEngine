@@ -39,6 +39,7 @@ def generate_alternative_sentences(input_phrase, num_sentences=5, topn=5):
 
     return [sentence.replace('_', ' ') for sentence in new_sentences]
 
+
 # def generate_phrases_from_list(phrases_list):
 #     separated_output = [phrase.replace('_', ' ') for phrase in phrases_list]
 #
