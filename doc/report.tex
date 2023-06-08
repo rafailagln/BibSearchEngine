@@ -2,6 +2,7 @@
 \usepackage{booktabs}
 \usepackage{float}
 \usepackage{fancyhdr}
+\usepackage{amsmath}
 % \usepackage[]{biblatex}
 % \usepackage[nottoc]{tocbibind}
 \fancyhf{} % Clear header/footer
@@ -141,7 +142,10 @@ continuously improve the search engine's capability to adapt and cater to users'
 \section{Implementation}
 \subsection{Ranking Implementation}
 
-The ranking has been implemented using the BM25F algorithm, which is a variant of the BM25 ranking algorithm. The following steps outline how the ranking process works:
+The ranking has been implemented using the BM25F algorithm, which is a variant of the BM25 
+ranking algorithm that is designed to handle documents with multiple fields. Each field 
+contributes to the final score of a document. The following steps outline how the ranking 
+process works:
 
 \begin{enumerate}
     \item The \texttt{BM25F} class is defined, taking the inverted index and the total number of 
@@ -173,13 +177,45 @@ The ranking has been implemented using the BM25F algorithm, which is a variant o
     documents based on their scores in descending order.
 \end{enumerate}
 
-In summary, the ranking process involves calculating the IDF, TF, and BM25F
-% ~\cite(PJAGIF10) 
+The mathematical formula of the BM25F algorith is:
+
+\begin{multline}
+    \text{{score}}(Q, D) = \sum_{i=1}^{n} \text{{IDF}}(q_i) \cdot \\
+    \left[ \frac{\sum_{j=1}^{m} W_{f_j} \cdot \text{{TF}}(q_i, F_{f_j}, D) \cdot (k1_{f_j} + 1)}{\sum_{j=1}^{m} W_{f_j} \cdot \text{{TF}}(q_i, F_{f_j}, D) + k1_{f_j} \cdot (1 - b_{f_j} + b_{f_j} \cdot \frac{\text{{length}}(F_{f_j}, D)}{\text{{avg\_length}}(F_{f_j})})} \right]
+\end{multline}
+
+Where:
+\begin{itemize}
+  \item $Q = \{q_1, q_2, ..., q_n\}$ is a query with $n$ terms.
+  \item $D$ is a document.
+  \item $IDF(q_i)$ is the inverse document frequency of term $q_i$.
+  \item $TF(q_i, F_{f_j}, D)$ is the term frequency of term $q_i$ in field $f_j$ of document $D$.
+  \item $W_{f_j}$ is the weight of field $f_j$.
+  \item $k1_{f_j}$ and $b_{f_j}$ are free parameters, specific to each field $f_j$.
+  \item $\text{{length}}(F_{f_j}, D)$ is the length of the field $f_j$ in the document $D$.
+  \item $\text{{avg\_length}}(F_{f_j})$ is the average length of field $f_j$ in the collection.
+\end{itemize}
+
+This formula calculates the BM25F score for a given document $D$ and query $Q$ by summing 
+the contributions of each query term $q_i$, where the contribution is determined by the IDF of 
+the term and the weighted term frequency in each field $f_j$. The term frequency is normalized
+by the field length and average field length in the collection. The weight of each field $f_j$ is
+given by $W_{f_j}$. The parameters $k1_{f_j}$ and $b_{f_j}$ are specific to each field, and they control the 
+scaling by term frequency and field length, respectively \cite{rostami2022investigating}. 
+
+In summary, the ranking process involves calculating the IDF, TF, and BM25F \cite{PJAGIF10} 
 scores for each 
 document and query term, and then combining these scores to obtain the final ranking. The 
 process takes into account factors such as term frequency, field length, and document references 
 to determine the relevance and ranking of documents.
 % TODO add citation and mathematical formula
+
+\subsubsection{Boolean Information Retrieval Algorithm}
+The Boolean Information Retrieval algorithm was used to initially narrow down the results. 
+If the number of texts containing any of the words found in the query, then we use this 
+algorithm to give an initial score to the texts. For each word of the query that contains 
+the text, it gets a point, and then a classification is made based on this point. In the end, 
+the texts with the highest score are the ones that pass to the next stage of the BM25F algorithm.
 
 \subsubsection{Preprocessor Package}
 
@@ -237,7 +273,7 @@ number of documents from a collection. Here are the key methods of the \texttt{R
 \subsubsection{Metadata}
 
 The \texttt{Metadata} class handles metadata operations related to the index. It maintains 
-information about document lengths, average lengths, and references. Here are the key methods of 
+information about document's field lengths, average lengths, and references. Here are the key methods of 
 the \texttt{Metadata} class:
 
 \begin{itemize}
@@ -533,8 +569,66 @@ simultaneously.
 \section{Observations}
 
 \subsection{Indexer}
-% BM25F Parallelization 
+In order to be able to search the documents we store and serve the queries that come, we chose 
+to use the structure of the inverted index. An inverted index is a data structure used to create 
+a full-text search index, enabling fast, keyword-based searches. It is one of the most critical 
+components of search engines.
 
+The term $inverted$ comes from the way the index is built: instead of listing, for each document 
+the terms it contains, it lists for each term, the documents that contain it, thus "inverting" 
+the relationship between documents and terms. Inverted indexes are used because they allow very 
+fast keyword-based searches. Once the inverted index is built, finding all documents containing 
+a particular keyword is as simple as looking up the keyword in the index, which is a very fast 
+operation. Without an inverted index, a keyword-based search would require scanning through all 
+documents in the collection, which is impractical for large document collections.
+
+To reduce the search time for a single word, the inverted index must be in main memory, so that 
+we do not have to access the disk every time. In order to reduce the size of the index and fit it 
+entirely in memory, we built it using a $Trie$ data structure. So we observed a dramatic reduction 
+in the size of the inverted index. Also a side benefit observed using this structure was an 
+increase in search speed.
+
+\subsection{BM25F Parallelization}
+To increase the performance of the BM25F algorithm we tried to parallelize the calculation of the 
+scores of the documents. We studied two basic techniques, to parallelize computation at process 
+level and at thread level. In both cases the number of documents of each node of the system, was 
+divided into processes or threads, the scores of each chunk were calculated in parallel, and at 
+the end the results were collected in a common structure that contained all the texts and their 
+scores. But through experiments, both with the number of documents, but also with the number of 
+processes or threads, we did not see an improvement in the performance. Below we explain the 
+possible reasons why we did not see a performance improvement for each technique:
+
+\begin{itemize}
+    \item {\texttt{Process} Level Parallelization}: Multiprocessing in Python has an overhead 
+    associated with it due to the need to spin up new processes, communicate between them 
+    (which involves pickling and unpickling data), and then collect the results. This overhead 
+    can be substantial, especially for smaller tasks or faster computations where the time 
+    spent setting up and managing the processes can outweigh the benefits of parallel execution.
+    BM25F algorithm is not be sufficiently complex or time-consuming to benefit from parallel 
+    execution, particularly given the overheads associated with multiprocessing. The overheads 
+    may include:
+
+    \begin{itemize}
+        \item The time taken to start and stop processes.
+        \item The time taken to divide the task into chunks.
+        \item The time taken to communicate data between processes (serialization and deserialization).
+    \end{itemize}
+
+    \item {\texttt{Thread} Level Parallelization}: Due to Python's GIL BM25F algorithm couldn't 
+    parallelized in thread level. Python's Global Interpreter Lock, or GIL, is a mutex (or a lock) 
+    that allows only one thread to execute at a time in a single process. This is because CPython, 
+    the reference implementation of Python, is not thread-safe. The GIL is used to prevent 
+    multiple native threads from executing Python bytecodes at once, which can cause 
+    inconsistencies and problems with Python objects.
+
+    The GIL makes single-threaded programs fast and efficient, but it can significantly slow 
+    down multi-threaded CPU-bound programs. It is because, despite having multiple threads 
+    within a process, due to the GIL, only one thread can execute at a time, negating the 
+    benefits of multi-core processors. Essentially, the GIL leads to essentially single-threaded 
+    execution, even on multi-threaded Python programs.
+\end{itemize}
+
+% \newpage
 % \printbibliography{bib}
 
 \newpage
