@@ -3,6 +3,9 @@ import json
 import gzip
 
 from db.connection import MongoDBConnection
+from logger import MyLogger
+
+logger = MyLogger()
 
 
 def get_shard(doc_id, num_shards):
@@ -133,8 +136,8 @@ class FastJsonLoader:
                                 'referenced_by': referenced_by
                             })
                         else:
-                            print(f'File {file} contents might have changed. Skipping '
-                                  f'file. Delete doc_ids.json to rebuild the metadata')
+                            logger.log_info(f'File {file} contents might have changed. Skipping '
+                                            f'file. Delete doc_ids.json to rebuild the metadata')
                             skip_file = True
                             break
 
@@ -162,7 +165,7 @@ class FastJsonLoader:
                     self.documents[f'documents_{file_count}.gz'] = compressed_data
                     file_count += 1
 
-                print(f'Loaded document {file} in memory ({counter / total_files * 100:.2f}%)')
+                logger.log_info(f'Loaded document {file} in memory ({counter / total_files * 100:.2f}%)')
                 counter += 1
 
         if not self.ids_exist:
@@ -258,18 +261,18 @@ class FastJsonLoader:
 
         Args:
             doc_ids (list): A list of document IDs to retrieve data for.
-            sort_by_doc_id (bool): Indicates whether to sort the results by doc_id. If set to True,
-                the results will be sorted based on the order of the provided doc_ids.
+            sort_by_doc_id (bool, optional): Indicates whether to sort the results by doc_id. If set to True,
+                the results will be sorted based on the order of the provided doc_ids. Default is False.
 
         Returns:
             list: A list of dictionaries containing the retrieved data. Each dictionary represents a document
-                and contains the following fields:
-                - 'order' (int): The order of the document ID in the input list (only present if sort_by_doc_id is True).
-                - 'doc_id' (int): The ID of the document.
-                - 'title' (str): The title of the document.
-                - 'abstract' (str): The abstract of the document.
-                - 'URL' (str): The URL of the document.
-                - 'referenced_by' (int): The number of times the document is referenced by other documents.
+            and contains the following fields:
+                'order' (int): The order of the document ID in the input list (only present if sort_by_doc_id is True).
+                'doc_id' (int): The ID of the document.
+                'title' (str): The title of the document.
+                'abstract' (str): The abstract of the document.
+                'URL' (str): The URL of the document.
+                'referenced_by' (int): The number of times the document is referenced by other documents.
         """
         file_buckets = {}
         doc_id_order = {doc_id: i for i, doc_id in enumerate(doc_ids)}

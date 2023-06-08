@@ -18,6 +18,9 @@ from distributed.fast_json_loader import FastJsonLoader
 from distributed.utils import send_request, receive_message, send_message, execute_action
 import concurrent.futures
 from threading import Lock
+from logger import MyLogger
+
+logger = MyLogger()
 
 
 def split_ids(ids, n):
@@ -161,13 +164,6 @@ class DistributedNode:
             # Retrieves the current configuration.
             # Output: config (response payload)
             return json.dumps({'status': 'OK', "config": self.neighbour_nodes})
-        elif action == 'set_leader':
-            # Sets the current leader.
-            # Input: leader (leader information)
-            # Output: status (response payload)
-            self.current_leader = data['leader']
-            print(f"Node {self.node_id}: Leader updated to {self.current_leader['id']}")
-            return json.dumps({'status': 'OK'})
         else:
             # Handles an unknown request.
             return json.dumps({'error': 'Unknown request'})
@@ -197,8 +193,8 @@ class DistributedNode:
                         if response.get('status') == 'OK':
                             self.neighbour_nodes = response['config']
                             break
-                    except:
-                        print('Failed to get config from node ' + str(_node['id']))
+                    except socket.error as e:
+                        logger.log_info(f"Failed to get config from node {_node['id']} with error {e}")
             # Start db and index
             self.db.load_documents()
             self.indexer.create_load_index()
@@ -216,11 +212,11 @@ class DistributedNode:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0) as sock:
             sock.bind((self.node_host, self.node_port))
             sock.listen(5)
-            print(f"Node {self.node_id} listening on port {self.node_port}")
+            logger.log_info(f"Node {self.node_id} listening on port {self.node_port}")
 
             while True:
                 conn, addr = sock.accept()
-                print(f"Node {self.node_id}: Connection accepted from {addr}")
+                logger.log_info(f"Node {self.node_id}: Connection accepted from {addr}")
                 threading.Thread(target=self.handle_request_wrapper, args=(conn,)).start()
 
     def handle_request_wrapper(self, conn):
@@ -234,9 +230,9 @@ class DistributedNode:
             None
         """
         request = receive_message(conn)
-        print(f"Node {self.node_id}: Received request: {request[:100]}")
+        logger.log_info(f"Node {self.node_id}: Received request: {request[:100]}")
         response = self.handle_request(request)
-        print(f"Node {self.node_id}: Sending response: {response[:100]}")
+        logger.log_info(f"Node {self.node_id}: Sending response: {response[:100]}")
         send_message(response, conn)
 
     def check_heartbeats(self):
@@ -341,7 +337,7 @@ class DistributedNode:
                     try:
                         future.result()
                     except Exception as e:
-                        print(f"An error occurred: {e}")
+                        logger.log_error(f"An error occurred: {e}")
 
             results = []
             for _node in sorted(results_dict.keys()):
@@ -384,7 +380,7 @@ class DistributedNode:
             execute_action('update_alive', self.neighbour_nodes, self.node_id, {str(_node): False})
             api_requester = APIRequester(self.api_url, self.api_username, self.api_password)
             api_response = api_requester.post_update_config_endpoint(self.neighbour_nodes)
-            print('Update api config response:', api_response)
+            logger.log_error(f'Update api config response: {api_response}')
 
     def search_ids(self, data):
         """
@@ -420,7 +416,7 @@ class DistributedNode:
                     try:
                         future.result()
                     except Exception as e:
-                        print(f"An error occurred: {e}")
+                        logger.log_error(f"An error occurred: {e}")
 
             return list(map(int, heapq.nlargest(self.max_results, results.keys(), key=results.get)))
         else:
@@ -460,7 +456,7 @@ class DistributedNode:
             execute_action('update_alive', self.neighbour_nodes, self.node_id, {str(_node): False})
             api_requester = APIRequester(self.api_url, self.api_username, self.api_password)
             api_response = api_requester.post_update_config_endpoint(self.neighbour_nodes)
-            print('Update api config response:', api_response)
+            logger.log_error(f'Update api config response: {api_response}')
 
 
 if __name__ == '__main__':

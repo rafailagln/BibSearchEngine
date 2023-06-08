@@ -28,7 +28,7 @@ class MongoDBConnection:
         self.password = password
         self.auth_source = auth_source
         self.auth_mechanism = auth_mechanism
-        self.client = ''
+        self.client = None
         self.useNewUrlParser = True
         self.useUnifiedTopology = True
 
@@ -68,4 +68,5 @@ class MongoDBConnection:
             exc_value (Exception): The exception object raised (if any).
             traceback (Traceback): The traceback information (if any).
         """
-        self.client.close()
+        if isinstance(self.client, pymongo.MongoClient):
+            self.client.close()

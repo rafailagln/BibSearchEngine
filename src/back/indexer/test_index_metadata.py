@@ -1,6 +1,5 @@
 import unittest
 from unittest.mock import patch, Mock
-from db.connection import MongoDBConnection
 from indexer import Metadata
 
 

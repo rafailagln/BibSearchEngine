@@ -1,4 +1,7 @@
 from db.connection import MongoDBConnection
+from logger import MyLogger
+
+logger = MyLogger()
 
 
 class TrieNode:
@@ -91,6 +94,8 @@ class TrieIndex:
             values (list): A list of values associated with the key.
         """
         node = self.root
+        if node is None:
+            return []
         for char in key:
             if char not in node.children:
                 return []
@@ -148,9 +153,6 @@ class TrieIndex:
         """
         Retrieves all keys stored in the trie index.
 
-        Args:
-            None
-
         Returns:
             keys (list): A list of keys in the trie index.
         """
@@ -205,14 +207,11 @@ class TrieIndex:
                 index_collection.insert_many(batch)
                 print(f"Processed {count} documents... {count / total_documents:.2%} ({count}/{total_documents})",
                       end="\r", flush=True)
-            print("Finished saving trie to MongoDB")
+            logger.log_info("Finished saving trie to MongoDB")
 
     def load(self):
         """
         Loads the trie index from MongoDB and stores it as a TrieIndex (trie) in memory.
-
-        Args:
-            None
 
         Returns:
             self (TrieIndex): The loaded TrieIndex object.
@@ -233,15 +232,12 @@ class TrieIndex:
                 if count % progress_threshold == 0:
                     print(f"Processed {count} documents... {count / total_documents:.2%} ({count}/{total_documents})",
                           end="\r", flush=True)
-            print(f"Loaded {total_documents} documents from collection")
+            logger.log_info(f"Loaded {total_documents} documents from collection")
             return self
 
     def is_empty(self):
         """
         Checks if the trie index is empty.
-
-        Args:
-            None
 
         Returns:
             empty (bool): True if the trie index is empty, False otherwise.

@@ -1,5 +1,4 @@
 import unittest
-from pymongo import MongoClient
 from unittest.mock import patch, Mock
 from indexer import Reader
 from mongomock import MongoClient as MockedClient

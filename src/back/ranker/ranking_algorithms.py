@@ -3,7 +3,9 @@ import math
 import time
 from collections import defaultdict
 from indexer.index_creator import TITLE, ABSTRACT
-import concurrent.futures
+from logger import MyLogger
+
+logger = MyLogger()
 
 
 # def compute_doc_score(docs, query_terms, fields_weight_dict, length_field, avg_lf, idf, tf_c, k1, b):
@@ -79,13 +81,13 @@ class BM25F:
         idf = self._idf_calculation(query_terms)
         end_time = time.time()
         time_diff = end_time - start_time
-        print("Time elapsed (idf calculation):", time_diff, "seconds")
+        logger.log_info(f"Time elapsed (idf calculation): {time_diff} seconds")
 
         start_time = time.time()
         tf_c = self._tf_field_calculation(query_terms)
         end_time = time.time()
         time_diff = end_time - start_time
-        print("Time elapsed (TF_FIELD):", time_diff, "seconds")
+        logger.log_info(f"Time elapsed (TF_FIELD): {time_diff} seconds")
         start_time = time.time()
         # from all doc_ids that we will score
         for doc_id in docs:
@@ -111,7 +113,7 @@ class BM25F:
 
         end_time = time.time()
         time_diff = end_time - start_time
-        print("Time elapsed (BM25F search):", time_diff, "seconds")
+        logger.log_info(f"Time elapsed (BM25F search): {time_diff} seconds")
 
         return score
 
@@ -312,5 +314,5 @@ class BooleanInformationRetrieval:
         sorted_scores = heapq.nlargest(self.max_results, results.items(), key=lambda x: x[1])
         end_time = time.time()
         time_diff = end_time - start_time
-        print("Time elapsed (Boolean search):", time_diff, "seconds")
+        logger.log_info(f"Time elapsed (Boolean search) {time_diff} seconds:")
         return [doc_id for doc_id, score in sorted_scores]
