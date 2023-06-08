@@ -2,10 +2,14 @@
 \usepackage{booktabs}
 \usepackage{float}
 \usepackage{fancyhdr}
+% \usepackage[]{biblatex}
+% \usepackage[nottoc]{tocbibind}
 \fancyhf{} % Clear header/footer
 \renewcommand{\headrulewidth}{0pt} % Remove header rule
-
-
+\usepackage[english]{babel}
+%Includes "References" in the table of contents
+% \addbibresource{bib}
+% \AtBeginBibliography{\small}
 \usepackage{appendix}
 
 \begin{document}
@@ -111,8 +115,11 @@ To handle the scale and complexity of this dataset, we designed our search engin
 distributed system, leveraging the power of eight nodes. One node serves as the front-end, 
 handling user queries and managing the user interface, while the remaining seven nodes function 
 as the back-end, responsible for data storage and retrieval. In order to optimize query 
-performance, we implemented a MongoDB database to store essential information such as title, 
-abstract, and URL in memory, ensuring rapid access and retrieval.
+performance, we implemented a MongoDB database to store the index containing only the 
+essential information of each zipped json file such as title, 
+abstract, and URL in memory, ensuring rapid access and retrieval. Eventually, 
+MongoDB is used to store metadata of each entry. 
+% containing metadata of the index 
 
 In addition to establishing a robust infrastructure, we implemented a clear ranking 
 system to enhance the relevance and accuracy of search results.
@@ -166,10 +173,13 @@ The ranking has been implemented using the BM25F algorithm, which is a variant o
     documents based on their scores in descending order.
 \end{enumerate}
 
-In summary, the ranking process involves calculating the IDF, TF, and BM25F scores for each 
+In summary, the ranking process involves calculating the IDF, TF, and BM25F
+% ~\cite(PJAGIF10) 
+scores for each 
 document and query term, and then combining these scores to obtain the final ranking. The 
 process takes into account factors such as term frequency, field length, and document references 
 to determine the relevance and ranking of documents.
+% TODO add citation and mathematical formula
 
 \subsubsection{Preprocessor Package}
 
@@ -520,6 +530,14 @@ By strategically distributing the workload across multiple nodes, we aimed to ac
 performance, improved fault tolerance, and the ability to handle a high volume of user queries 
 simultaneously. 
 
+\section{Observations}
+
+\subsection{Indexer}
+% BM25F Parallelization 
+
+% \printbibliography{bib}
+
+\newpage
 \appendix
 \section{Hardware Specifications}
 \label{apx:hardware-specs}
