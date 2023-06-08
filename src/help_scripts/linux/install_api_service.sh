@@ -1,14 +1,16 @@
 #!/bin/bash
 
 # check if the correct number of arguments is provided
-if [ $# -ne 2 ]; then
+if [ $# -ne 1 ]; then
     echo "Error: Incorrect number of arguments provided."
-    echo "Usage: ./install_api_service <working_directory> <log_directory>"
+    echo "Usage: ./install_api_service <working_directory>"
     exit 1
 fi
 
 WORKING_DIR="$1"
-LOG_DIR="$2"
+
+# create the path for logs
+sudo mkdir /var/log/bibengine-api
 
 # the path of the service file to be created
 SERVICE_PATH="/etc/systemd/system/bib-engine-api.service"
@@ -24,8 +26,8 @@ echo "[Service]" >> $SERVICE_PATH
 echo "WorkingDirectory=${WORKING_DIR}" >> $SERVICE_PATH
 echo "ExecStart=python3 ${WORKING_DIR}/fast_api.py" >> $SERVICE_PATH
 echo "Restart=always" >> $SERVICE_PATH
-echo "StandardOutput=file:${LOG_DIR}/log_file.log" >> $SERVICE_PATH
-echo "StandardError=file:${LOG_DIR}/error_file.log" >> $SERVICE_PATH
+echo "StandardOutput=file:/var/log/bibengine-api/log_file.log" >> $SERVICE_PATH
+echo "StandardError=file:/var/log/bibengine-api/error_file.log" >> $SERVICE_PATH
 
 echo "" >> $SERVICE_PATH
 
