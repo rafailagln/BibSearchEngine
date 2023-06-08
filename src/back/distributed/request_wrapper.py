@@ -2,6 +2,9 @@ import json
 import socket
 
 from distributed.utils import send_request
+from logger import MyLogger
+
+logger = MyLogger()
 
 
 class RequestWrapper:
@@ -69,7 +72,7 @@ class RequestWrapper:
                     if response is not None:
                         return response
                 except socket.error as e:
-                    print(e)
+                    logger.logger(f"Failed to send search_ids request to {sending_node}: {e}")
             i += 1
 
     def fetch_data(self, ids):
@@ -94,5 +97,5 @@ class RequestWrapper:
                     if response is not None:
                         return response
                 except socket.error as e:
-                    print(e)
+                    logger.log_error(f"Failed to send get_data request to {sending_node}: {e}")
             i += 1

@@ -3,6 +3,9 @@ import json
 import gzip
 
 from db.connection import MongoDBConnection
+from logger import MyLogger
+
+logger = MyLogger()
 
 
 def get_shard(doc_id, num_shards):
@@ -133,8 +136,8 @@ class FastJsonLoader:
                                 'referenced_by': referenced_by
                             })
                         else:
-                            print(f'File {file} contents might have changed. Skipping '
-                                  f'file. Delete doc_ids.json to rebuild the metadata')
+                            logger.log_info(f'File {file} contents might have changed. Skipping '
+                                            f'file. Delete doc_ids.json to rebuild the metadata')
                             skip_file = True
                             break
 
@@ -162,7 +165,7 @@ class FastJsonLoader:
                     self.documents[f'documents_{file_count}.gz'] = compressed_data
                     file_count += 1
 
-                print(f'Loaded document {file} in memory ({counter / total_files * 100:.2f}%)')
+                logger.log_info(f'Loaded document {file} in memory ({counter / total_files * 100:.2f}%)')
                 counter += 1
 
         if not self.ids_exist:

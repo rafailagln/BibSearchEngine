@@ -1,5 +1,8 @@
 from collections import defaultdict
 from db.connection import MongoDBConnection
+from logger import MyLogger
+
+logger = MyLogger()
 
 
 class Metadata:
@@ -128,25 +131,25 @@ class Metadata:
                 doc_id = document["doc_id"]
                 fields = document["fields"]
                 self.length_field[doc_id] = fields
-            print("Loaded length field metadata")
+            logger.log_info("Loaded length field metadata")
 
             # Load average_length data from the separate document
             average_length_document = metadata_collection.find_one({"average_length": {"$exists": True}})
             if average_length_document:
                 self.average_length = defaultdict(float, average_length_document.get("average_length", {}))
-            print("Loaded average length metadata")
+            logger.log_info("Loaded average length metadata")
 
             # Load referenced_by data from the separate document
             referenced_by_document = metadata_collection.find_one({"referenced_by": {"$exists": True}})
             if referenced_by_document:
                 self.referenced_by = defaultdict(int, referenced_by_document.get("referenced_by", {}))
-            print("Loaded referenced_by metadata")
+            logger.log_info("Loaded referenced_by metadata")
 
             # If neither document exists, print a message and start with default values
             if length_field_documents and not average_length_document:
-                print("No metadata found in the collection. Starting with default values.")
+                logger.log_info("No metadata found in the collection. Starting with default values.")
 
-            print("Loaded all metadata from MongoDB")
+            logger.log_info("Loaded all metadata from MongoDB")
 
     def save(self):
         """
@@ -167,7 +170,7 @@ class Metadata:
                     "fields": fields
                 })
             metadata_collection.insert_many(length_field_documents)
-            print("Saved length field documents")
+            logger.log_info("Saved length field documents")
 
             # Save average_length data in a separate document
             average_length_document = {
@@ -175,7 +178,7 @@ class Metadata:
             }
             metadata_collection.update_one({"average_length": {"$exists": True}}, {"$set": average_length_document},
                                            upsert=True)
-            print("Saved average length document")
+            logger.log_info("Saved average length document")
 
             # Save referenced_by data in a separate document
             referenced_by_document = {
@@ -183,5 +186,5 @@ class Metadata:
             }
             metadata_collection.update_one({"referenced_by": {"$exists": True}}, {"$set": referenced_by_document},
                                            upsert=True)
-            print("Saved referenced_by document")
-            print("Finished saving metadata to MongoDB")
+            logger.log_info("Saved referenced_by document")
+            logger.log_info("Finished saving metadata to MongoDB")

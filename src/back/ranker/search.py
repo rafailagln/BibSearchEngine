@@ -4,6 +4,9 @@ from collections import defaultdict
 from indexer.index_creator import TITLE, ABSTRACT
 from preprocessor.data_cleaner import DataCleaner
 from ranker.ranking_algorithms import BooleanInformationRetrieval, BM25F
+from logger import MyLogger
+
+logger = MyLogger()
 
 
 class SearchEngine:
@@ -63,17 +66,17 @@ class SearchEngine:
         #     searching_docs = all_docs
 
         # if there are too many documents, cut them to the threshold with BooleanSearch (+ referenced_by)
-        print("Searching", len(searching_docs), "number of docs (before boolean)")
+        logger.log_info(f"Searching {len(searching_docs)} number of docs (before boolean)")
         start2_time = time.time()
         if len(searching_docs) > self.max_results:
             # add referenced_by to cut results
             searching_docs = self.bir.boolean_search(cleaned_query)
         end2_time = time.time()
         time_diff = end2_time - start2_time
-        print("Time elapsed (BIR search):", time_diff, "seconds")
+        logger.log_info(f"Time elapsed (BIR search): {time_diff} seconds",)
 
         end2_time = time.time()
-        print("Searching", len(searching_docs), "number of docs (after boolean)")
+        logger.log_info(f"Searching {len(searching_docs)} number of docs (after boolean)")
 
         # rank documents with BM25F algorithm
         bm25f_scored_docs = self.bm25f.bm25f(searching_docs, cleaned_query, self._get_weight_dict(),
@@ -88,7 +91,7 @@ class SearchEngine:
 
         end_time = time.time()
         time_diff = end_time - end2_time
-        print("Time elapsed (search):", time_diff, "seconds")
+        logger.log_info(f"Time elapsed (search): {time_diff} seconds")
 
         # return bm25f_scored_docs
         return final_scored_docs
@@ -107,7 +110,7 @@ class SearchEngine:
         ids = self.search(user_query)
         end_time = time.time()
         time_diff = end_time - start_time
-        print("Time elapsed (final_results):", time_diff, "seconds")
+        logger.log_info(f"Time elapsed (final_results): {time_diff} seconds")
         return ids
 
     def _count_results(self, query_terms):
@@ -182,7 +185,7 @@ class SearchEngine:
         sorted_scores = sorted(documents.items(), key=lambda x: x[1], reverse=True)
         end_time = time.time()
         time_diff = end_time - start_time
-        print("Sorting (BM25F search):", time_diff, "seconds")
+        logger.log_info(f"Sorting (BM25F search): {time_diff} seconds")
         return sorted_scores
 
     @staticmethod

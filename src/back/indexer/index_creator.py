@@ -1,14 +1,15 @@
 from indexer.index_metadata import Metadata
 from preprocessor.data_cleaner import DataCleaner
 from db.connection import MongoDBConnection
-import logging
 from distributed.trie import TrieIndex
+from logger import MyLogger
+
+logger = MyLogger()
 
 TITLE = 0
 ABSTRACT = 1
 
 cleaner = DataCleaner()
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 class IndexCreator:
@@ -46,7 +47,7 @@ class IndexCreator:
             self.index_metadata.set_total_docs(len(docs))
             if index_collection.count_documents({}) == 0:
                 # Index collection is empty, create index and save to collection
-                logging.info("Creating index...")
+                logger.log_info("Creating index...")
                 est_total_size = (self.db.doc_id - 1) // self.db.node_count
                 count = 0
                 progress_threshold = 100
@@ -68,17 +69,17 @@ class IndexCreator:
                     if count % progress_threshold == 0:
                         print(f'Created {count}/{est_total_size} docs ({count / est_total_size:.2%})', end="\r",
                               flush=True)
-                logging.info("Created index.")
+                logger.log_info("Created index.")
                 self.index_metadata.calculate_average_length()
                 self.index_metadata.normalize_referenced_by()
-                logging.info("Saving index to db...")
+                logger.log_info("Saving index to db...")
                 self.index_dictionary.save()
-                logging.info("Saving metadata to db...")
+                logger.log_info("Saving metadata to db...")
                 self.index_metadata.save()
             else:
-                logging.info("Loading index...")
+                logger.log_info("Loading index...")
                 self.index_dictionary.load()
-                logging.info("Loading metadata...")
+                logger.log_info("Loading metadata...")
                 self.index_metadata.load()
 
     def node_adder(self, _id, cleaned_words, _type):

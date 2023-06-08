@@ -6,8 +6,10 @@ import struct
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
-
 from configurations.read_config import IniConfig
+from logger import MyLogger
+
+logger = MyLogger()
 
 ini_config = IniConfig('../config.ini')
 
@@ -79,7 +81,7 @@ def send_request(node_addr, request):
         try:
             return json.loads(response)
         except json.JSONDecodeError as e:
-            print(f"Failed to decode JSON response: {e}")
+            logger.log_info(f"Failed to decode JSON response: {e}")
             return None
 
 
@@ -118,7 +120,7 @@ def execute_action(action, neighbor_nodes, node_id, attr1=None, response_callbac
             return response.get('status') == 'OK'
 
         except (ConnectionError, TimeoutError, OSError) as e:
-            print(e)
+            logger.log_error(f"Failed to connect to {node['id']}: {e}")
             return False
 
     with ThreadPoolExecutor(max_workers=len(neighbor_nodes)) as executor:
@@ -139,7 +141,7 @@ def execute_action(action, neighbor_nodes, node_id, attr1=None, response_callbac
                 time.sleep(0.5)
             if all_ok:
                 all_connected = True
-    print(f"Action: {action} executed!")
+    logger.log_info(f"Action: {action} executed!")
 
 
 def send_message(message, conn):
@@ -154,12 +156,12 @@ def send_message(message, conn):
         None
     """
     message_size = len(message)
-    print(f"[+] Message length:", message_size)
+    # logger.log_info(f"[+] Message length: {message_size}")
     sys.stdout.flush()
     header = struct.pack('!I', message_size)
     conn.sendall(header)
     conn.sendall(message.encode())
-    print(f"[+] Message sent successfully")
+    # logger.log_info(f"[+] Message sent successfully")
 
 
 def receive_message(conn):
@@ -187,5 +189,5 @@ def receive_message(conn):
         message_chunks.append(chunk)
         remaining_size -= len(chunk)
     message = b''.join(message_chunks).decode()
-    print("[+] Message received successfully")
+    # logger.log_info("[+] Message received successfully")
     return message

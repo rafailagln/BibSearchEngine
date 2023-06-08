@@ -1,4 +1,3 @@
-import logging
 import time
 import uvicorn
 import concurrent.futures
@@ -11,9 +10,9 @@ from typing import List
 from configurations.read_config import IniConfig
 from distributed.config_manager import ConfigManager
 from distributed.request_wrapper import RequestWrapper
+from logger import MyLogger
 
-# Set up logging
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = MyLogger()
 
 app = FastAPI()
 security = HTTPBasic()
@@ -75,9 +74,9 @@ def search_ids(query: str):
     with concurrent.futures.ThreadPoolExecutor() as executor:
         future = executor.submit(request_wrapper.search_ids, query)
     ids = future.result()
-    logging.info(f"Returned {len(ids['results'])} document IDs")
+    logger.log_info(f"Returned {len(ids['results'])} document IDs")
     end_time = time.time()
-    logging.info(f"Elapsed time: {end_time - start_time}")
+    logger.log_info(f"Elapsed time: {end_time - start_time}")
     return ids['results']
 
 
@@ -109,7 +108,7 @@ def fetch_data(ids: List[int]):
     with concurrent.futures.ThreadPoolExecutor() as executor:
         future = executor.submit(request_wrapper.fetch_data, ids)
     results = future.result()
-    logging.info(f"Fetched data for {len(results['results'])} documents")
+    logger.log_info(f"Fetched data for {len(results['results'])} documents")
     return results['results']
 
 
@@ -119,6 +118,7 @@ async def read_protected_endpoint(request: Request, _: str = Depends(get_current
     Updates the configuration and saves it.
 
     Args:
+        _: Used to validate the credentials.
         request: The HTTP request containing the updated configuration data.
 
     Returns:

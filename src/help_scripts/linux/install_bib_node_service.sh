@@ -31,7 +31,7 @@ echo "WorkingDirectory=${WORKING_DIR}" >> $SERVICE_PATH
 echo "ExecStart=${WORKING_DIR}/node.sh ${PROJECT_SRC_PATH} ${JSON_CONFIG_PATH} ${INI_CONFIG_PATH} ${NODE_ID}" >> $SERVICE_PATH
 echo "Restart=always" >> $SERVICE_PATH
 echo "StandardOutput=file:/var/log/bibengine-node/log_file.log" >> $SERVICE_PATH
-echo "StandardError=file:/var/log/bibengine-node/error_file.log" >> $SERVICE_PATH
+echo "StandardError=file:/var/log/bibengine-node/log_file.log" >> $SERVICE_PATH
 
 echo "" >> $SERVICE_PATH
 

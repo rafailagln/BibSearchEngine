@@ -27,7 +27,7 @@ echo "WorkingDirectory=${WORKING_DIR}" >> $SERVICE_PATH
 echo "ExecStart=python3 ${WORKING_DIR}/fast_api.py" >> $SERVICE_PATH
 echo "Restart=always" >> $SERVICE_PATH
 echo "StandardOutput=file:/var/log/bibengine-api/log_file.log" >> $SERVICE_PATH
-echo "StandardError=file:/var/log/bibengine-api/error_file.log" >> $SERVICE_PATH
+echo "StandardError=file:/var/log/bibengine-api/log_file.log" >> $SERVICE_PATH
 
 echo "" >> $SERVICE_PATH
 
