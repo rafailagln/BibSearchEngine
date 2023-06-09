@@ -3,6 +3,7 @@
 \usepackage{float}
 \usepackage{fancyhdr}
 \usepackage{amsmath}
+\usepackage[nottoc]{tocbibind}
 % \usepackage[]{biblatex}
 % \usepackage[nottoc]{tocbibind}
 \fancyhf{} % Clear header/footer
@@ -546,6 +547,66 @@ facilitates distributed document loading and indexing, and supports efficient da
 search capabilities. By leveraging the power of a distributed architecture, the search engine 
 can efficiently process large volumes of bibliographic data and provide accurate search results.
 
+\section{Suggest Alternative Queries}
+In 2012, Thomas Mikolov, an intern at Microsoft, found a way to encode the meaning On words 
+in a modest number of vector dimensions.CMikolor trained a neural networks to predict word 
+occurrences near each target word. In 2013, once at Google, Mikolov and his teammates 
+released the software for creating these word vectors and called it Word2vec~\cite{MCCD13}.
+
+Word2vec learns the meaning of words merely by processing a large corpus of unlabeled text. 
+No one has to label the words in the Word2vec vocabulary. No one has to tell the Word2vec 
+algorithm that Marie Curie is a scientist, that the Timbers are a soccer team, that Seattle 
+is a city, or that Portland is a city in both Oregon and Maine. And no one has to tell 
+Word2vec that soccer is a sport, or that a team is a group of people, or that cities are both 
+places as well as communities. Word2vec can learn that and much more, all on its own! All you 
+need is a corpus large enough to mention Marie Curie and Timbers and Portland near other 
+words associated with science or soccer or cities.
+
+% This unsupervised nature of Word2vec is what makes it so powerful. The world is full of 
+% unlabeled, uncategorized, unstructured natural language text.
+
+% Word2vec was first presented publicly in 2013 at the ACL conference.
+
+Word2Vec uses two main algorithms to create these word embeddings: Continuous Bag of Words (CBOW) and Skip-gram.
+
+\paragraph{CBOW} This algorithm takes the context of each word as the 
+input and tries to predict the word corresponding to the context. The 
+context is defined as a window of surrounding words. For example, if 
+we consider the sentence "The cat sat on the mat", and our target 
+word is 'sat', with a window size of 2, the context words are 'The', 
+'cat', 'on', 'the'. The CBOW model tries to predict the target word 
+'sat' given these context words.
+
+\paragraph{Skip-gram} The Skip-gram model works in the reverse manner 
+of the CBOW model. It tries to predict the context words given a 
+target word. Using the same sentence "The cat sat on the mat", and 
+the target word 'sat', the Skip-gram model will try to predict the 
+context words 'The', 'cat', 'on', 'the' given the target word 'sat'.
+
+The mathematical formulations of these models involve the use of 
+softmax function and negative sampling. The softmax function is used 
+to turn scores into probabilities, which are used to predict words. 
+Negative sampling is a simplification used to make the computation 
+faster by updating only a small percentage of the model's weights.
+
+\paragraph{Sent2Vec} This is an extension of the Word2Vec model to 
+generate embeddings for entire sentences or short texts. It considers 
+the order of the words in the text, which can provide additional 
+context and meaning~\cite{MZ20}. Sent2Vec provides a simple and efficient way to 
+represent sentences in vector space which can be beneficial for tasks 
+like text classification, clustering, and similarity assessment.
+
+\paragraph{BERT (Bidirectional Encoder Representations from 
+Transformers)} BERT~\cite{DCLT19} is a more advanced model for 
+generating word 
+embeddings. Unlike Word2Vec, which only uses local context to 
+understand a word, BERT uses both the left and the right context, 
+which means it considers the entire sentence. BERT is pre-trained on 
+a large corpus of text and then fine-tuned for specific tasks, such 
+as question answering or sentiment analysis. BERT's bidirectional 
+approach allows it to understand the context and the semantic meaning 
+of a word better, leading to more accurate results in many NLP tasks.
+
 \section{Deployment}
 For the deployment of our bibliographic search engine, the following approach has been followed.
 The front-end of our system has been developed using the Spring Boot framework.
@@ -628,14 +689,15 @@ possible reasons why we did not see a performance improvement for each technique
     execution, even on multi-threaded Python programs.
 \end{itemize}
 
-% \newpage
-% \printbibliography{bib}
+\newpage
+\bibliographystyle{unsrt}
+\bibliography{bib}
 
 \newpage
 \appendix
 \section{Hardware Specifications}
 \label{apx:hardware-specs}
-\begin{table}[htbp]
+\begin{table}[H]
     \centering
     \caption{RAM Information}
     \begin{tabular}{ll}
@@ -669,7 +731,7 @@ possible reasons why we did not see a performance improvement for each technique
 
   \newpage
   \pagestyle{fancy} % Apply the modified page style to the current page
-  \begin{table}[htbp]
+  \begin{table}[H]
     \centering
     \caption{System Information}
     \begin{tabular}{ll}
