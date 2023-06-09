@@ -172,17 +172,17 @@ process works:
     \item The \texttt{BooleanInformationRetrieval} class is defined, which performs boolean 
     search by finding the documents that contain all the words in the query. The documents are 
     then ranked by the number of words they contain.
-    \item The \texttt{Relevancy} class provides a cosine similarity method to calculate the 
-    similarity between two sentences.
+%    \item The \texttt{Relevancy} class provides a cosine similarity method to calculate the 
+%    similarity between two sentences.
     \item The \texttt{sort\_documents} method in the \texttt{SearchEngine} class sorts the 
     documents based on their scores in descending order.
 \end{enumerate}
 
-The mathematical formula of the BM25F algorith is:
+The mathematical formula of the BM25F algorithm is:
 
 \begin{multline}
     \text{{score}}(Q, D) = \sum_{i=1}^{n} \text{{IDF}}(q_i) \cdot \\
-    \left[ \frac{\sum_{j=1}^{m} W_{f_j} \cdot \text{{TF}}(q_i, F_{f_j}, D) \cdot (k1_{f_j} + 1)}{\sum_{j=1}^{m} W_{f_j} \cdot \text{{TF}}(q_i, F_{f_j}, D) + k1_{f_j} \cdot (1 - b_{f_j} + b_{f_j} \cdot \frac{\text{{length}}(F_{f_j}, D)}{\text{{avg\_length}}(F_{f_j})})} \right]
+    \left[ \frac{\sum_{j=1}^{m} W_{f_j} \cdot \text{{TF}}(q_i, F_{f_j}, D) \cdot (k1_{f_j} + 1)}{\sum_{j=1}^{m} W_{f_j} \cdot \text{{TF}}(q_i, F_{f_j}, D) + k1_{f_j} \cdot \left(1 - b_{f_j} + b_{f_j} \cdot \frac{\text{{length}}(F_{f_j}, D)}{\text{{avg\_length}}(F_{f_j})}\right)} \right]
 \end{multline}
 
 Where:
@@ -202,7 +202,7 @@ the contributions of each query term $q_i$, where the contribution is determined
 the term and the weighted term frequency in each field $f_j$. The term frequency is normalized
 by the field length and average field length in the collection. The weight of each field $f_j$ is
 given by $W_{f_j}$. The parameters $k1_{f_j}$ and $b_{f_j}$ are specific to each field, and they control the 
-scaling by term frequency and field length, respectively \cite{rostami2022investigating}. 
+scaling by term frequency and field length, respectively \cite{Rost2022}. 
 
 In summary, the ranking process involves calculating the IDF, TF, and BM25F \cite{PJAGIF10} 
 scores for each 
@@ -214,7 +214,7 @@ to determine the relevance and ranking of documents.
 \subsubsection{Boolean Information Retrieval Algorithm}
 The Boolean Information Retrieval algorithm was used to initially narrow down the results. 
 If the number of texts containing any of the words found in the query, then we use this 
-algorithm to give an initial score to the texts. For each word of the query that contains 
+algorithm to give an initial score to the documents. For each word of the query that contains 
 the text, it gets a point, and then a classification is made based on this point. In the end, 
 the texts with the highest score are the ones that pass to the next stage of the BM25F algorithm.
 
@@ -254,22 +254,22 @@ The indexer package provides functionality to create and manage indexes for a Mo
 It consists of the \texttt{Reader} and \texttt{IndexCreator} classes, along with supporting 
 classes \texttt{Metadata} and \texttt{InfoClass}.
 
-\subsubsection{Reader}
-
-The \texttt{Reader} class handles reading operations from a MongoDB database. It provides 
-methods to retrieve a collection, read all documents from a collection, and read a limited 
-number of documents from a collection. Here are the key methods of the \texttt{Reader} class:
-
-\begin{itemize}
-    \item \texttt{\_\_init\_\_(connection\_string)}: Initializes a \texttt{Reader} object with 
-    the given MongoDB connection string.
-    \item \texttt{get\_collection(db\_name, collection\_name)}: Retrieves a collection from the 
-    MongoDB database.
-    \item \texttt{read\_collection(collection)}: Reads all documents from the provided 
-    collection.
-    \item \texttt{read\_limited\_collection(collection, limit)}: Reads a limited number of 
-    documents from the provided collection.
-\end{itemize}
+%\subsubsection{Reader}
+%
+%The \texttt{Reader} class handles reading operations from a MongoDB database. It provides 
+%methods to retrieve a collection, read all documents from a collection, and read a limited 
+%number of documents from a collection. Here are the key methods of the \texttt{Reader} class:
+%
+%\begin{itemize}
+%    \item \texttt{\_\_init\_\_(connection\_string)}: Initializes a \texttt{Reader} object with 
+%    the given MongoDB connection string.
+%    \item \texttt{get\_collection(db\_name, collection\_name)}: Retrieves a collection from the 
+%    MongoDB database.
+%    \item \texttt{read\_collection(collection)}: Reads all documents from the provided 
+%    collection.
+%    \item \texttt{read\_limited\_collection(collection, limit)}: Reads a limited number of 
+%    documents from the provided collection.
+%\end{itemize}
 
 \subsubsection{Metadata}
 
@@ -280,7 +280,7 @@ the \texttt{Metadata} class:
 \begin{itemize}
     \item \texttt{\_\_init\_\_(db\_name, metadata\_collection)}: 
     Initializes the \texttt{Metadata} object with the given MongoDB database name and collection name.
-    \item \texttt{update\_doc\_num()}: Updates the total number of documents.
+%    \item \texttt{update\_doc\_num()}: Updates the total number of documents.
     \item \texttt{add\_doc\_length\_field(doc\_id, length, field)}: Adds the length of a 
     specific field in a document.
     \item \texttt{increase\_average\_length(length, field)}: Increases the average length of a 
@@ -307,7 +307,7 @@ The \texttt{IndexCreator} class handles the creation and loading of the index. I
 methods of the \texttt{IndexCreator} class:
 
 \begin{itemize}
-    \item \texttt{\_\_init\_\_(db, metadata\_collection, db\_name='M151', 
+    \item \texttt{\_\_init\_\_(db, metadata\_collection, db\_name='M151', \\
     index\_collection='Index')}: Initializes an instance of \texttt{IndexCreator} with the given 
     parameters.
     \item \texttt{create\_load\_index()}: Creates or loads the index. It creates the index if 
@@ -326,20 +326,23 @@ ensuring efficient retrieval and analysis of the indexed data.
 
 \subsection{APIRequester Package}
 
-The APIRequester package provides functionality for sending HTTP requests to an API. It includes 
-the \texttt{APIRequester} class, which handles authentication and sending POST requests to the 
+The APIRequester package provides functionality for sending HTTP requests to the API Server 
+(see section \ref{sec:apiserver}). It includes the \texttt{APIRequester} class, which handles 
+authentication and sending POST requests to the 
 API endpoints.
 
 
 The \texttt{APIRequester} class is responsible for creating and sending HTTP requests to the 
-API. It requires the base URL, username, and password for authentication. Here are the key 
-methods of the \texttt{APIRequester} class:
+API. When a node forwards a request and gets a bad response it will use this class to communicate 
+with the API Server via the \texttt{update\_config} endpoint (see section~\ref{sec:endpoints}). 
+It requires the base URL, username, and password for authentication. Here are the key methods 
+of the \texttt{APIRequester} class:
 
 \begin{itemize}
     \item \texttt{\_\_init\_\_(base\_url, username, password)}: Initializes an 
     \texttt{APIRequester} object with the base URL, username, and password.
     \item \texttt{post\_update\_config\_endpoint(data)}: Sends a POST request to the 
-    'update\_config' endpoint of the API with the provided configuration data. Returns the 
+    '\texttt{up-\\date\_config}' endpoint of the API with the provided configuration data. Returns the 
     parsed JSON response if the request is successful, otherwise raises an exception with the 
     corresponding status code.
 \end{itemize}
@@ -350,14 +353,21 @@ connection with the API and send HTTP requests. It also utilizes the \texttt{bas
 The \texttt{urllib.parse} module is used to parse the base URL.
 
 Overall, the APIRequester package provides a convenient way to authenticate and send POST 
-requests to an API. It abstracts away the low-level details of establishing connections and 
-handling authentication, allowing users to focus on interacting with the API and processing the 
-responses.
+requests to an API.  
 
 \subsection{API Server}
+\label{sec:apiserver}
 
 The API server is implemented using the FastAPI framework. It provides several endpoints for 
-handling different types of requests. The server supports basic authentication and uses a 
+handling different types of requests. To understand why these endpoints where created we will 
+briefly analyse the end-to-end workflow. When a user submits a query in the front end, a request
+is made to the \texttt{search\_ids} endpoint and returns the full list of document ids for that 
+query. Subsequently, it will make another request to the \texttt{fetch\_data} endpoint to retrieve 
+information for the 10 highest ranked documents. A new request to \texttt{fetch\_data} endpoint 
+is made every time the user changes the page. 
+
+
+The server supports basic authentication and uses a 
 configuration manager and request wrapper to handle configuration updates and API requests, 
 respectively.
 
@@ -373,9 +383,11 @@ classes are created.
 The server supports basic authentication using the provided credentials. 
 The \texttt{get\_current\_username} function validates the provided username and password 
 against the configured credentials. If the credentials are incorrect, an HTTPException with 
-status code 401 (Unauthorized) is raised.
+status code 401 (Unauthorized) is raised. In the current implementation, only the 
+\texttt{update\_config} endpoint is locked.
 
 \subsubsection{Endpoints}
+\label{sec:endpoints}
 
 The API server provides the following endpoints:
 
@@ -400,7 +412,7 @@ concurrently. The result is returned as a list of dictionaries containing the fe
 each document.
 
 The \texttt{update\_config} endpoint reads the updated configuration data from the HTTP request, 
-saves it using the \texttt{ConfigManager}, and updates the \texttt{neighbour\_nodes} property of 
+saves it using the \texttt{ConfigManager}, and updates the \texttt{neighbour\\\_nodes} property of 
 the \texttt{RequestWrapper}.
 
 \subsubsection{Running the Server}
@@ -412,18 +424,26 @@ Overall, the API server provides a RESTful API with authentication and support f
 requests. It allows users to search for document IDs, fetch data, and update the configuration 
 of the system.
 
-\subsection{The \texttt{distributed} Package}
+\subsection{\texttt{Distributed} Package}
 
 The \texttt{distributed} package offers functionality for handling JSON documents stored in a 
-distributed manner across multiple files. It includes the following key features:
+distributed manner across multiple files and servers. It includes the following key features:
 
 \subsubsection{Shard Calculation}
 The package provides a function \texttt{get\_shard(doc\_id, num\_shards)} to determine the shard 
-ID based on the document ID and the total number of shards.
+ID based on the document ID and the total number of shards. All ids within a node have 
+the same remainder when divided with the node count. This way, every node knows exactly where to 
+ask when it needs to get data from another node.
 
 \subsubsection{FastJsonLoader Class}
-This class manages the loading and management of JSON documents. It includes the following 
-methods:
+FastJsonLoader class facilitates loading and accessing JSON documents stored in a distributed manner,
+ specifically through sharding across multiple nodes. Documents are stored in a specified directory 
+ as compressed files in .gz format. Upon initialization, the class decompresses each document, 
+ selectively extracts the required values, and then recompresses the file before storing it into 
+ memory. MongoDB is used to save metadata such as document IDs, file associations, private index etc. 
+ It provides methods to load documents into memory, retrieve specific documents based on their IDs or 
+ retrieve all documents. The class is designed to handle changes in file contents, and if such changes 
+ are detected, it logs an informational message and skips the changed file. 
 
 \begin{itemize}
     \item \texttt{\_\_init\_\_(...)}: The class constructor allows for setting parameters such 
@@ -466,12 +486,24 @@ nodes that work together to distribute the workload and improve performance. Her
 discuss the implementation details of the \texttt{DistributedNode} class, which represents an 
 individual node in the distributed system.
 
-\subsection*{\texttt{DistributedNode} Class Overview}
+\subsubsection{DistributedNode Class}
+\label{sec:distributed}
 
 The \texttt{DistributedNode} class is responsible for managing the operations of a single node 
-in the distributed bibliographic search engine. It handles incoming requests, performs document 
-loading and indexing, and facilitates distributed search operations. Let's go through the key 
-components and methods of this class to understand its functionality.
+in the distributed bibliographic search engine as well a communicating with all the other nodes. 
+It handles incoming requests, performs document loading and indexing, and facilitates distributed 
+search operations. 
+
+On startup, all nodes receive a heartbeat from the leader for confirmation, followed by 
+instructions to load documents and create the index. This leader's role is needed only 
+during initiation. The system can handle node failures, with minor data loss whike the 
+server is down in the absence of replication. When a node sends a request and gets a bad 
+response it will update the config of the API server to stop forwarding urls to the 
+corresponding node. When the node recovers, it updates the others to reestablish its 
+presence on the network.
+
+Let's go through the key components and methods of this class to understand its functionality
+ in more detail.
 
 
 \subsubsection*{Initialization}
@@ -504,15 +536,15 @@ verifies their status. If the current node is the leader and it is the first boo
 separate thread to continuously check the heartbeats. On subsequent boots, the method retrieves 
 the configuration from other nodes and starts the document loading and index creation process.
 
-\subsubsection*{Interacting with Neighboring Nodes}
+%\subsubsection*{Interacting with Neighboring Nodes}
 
-The \texttt{update\_alive\_nodes} method updates the list of alive nodes by sending heartbeat 
-requests to each node. It iterates through the neighboring nodes and sends heartbeat requests to 
-determine their status.
+%The \texttt{update\_alive\_nodes} method updates the list of alive nodes by sending heartbeat 
+%requests to each node. It iterates through the neighboring nodes and sends heartbeat requests to 
+%determine their status.
 
-The \texttt{notify\_nodes\_of\_leader} method notifies the neighboring nodes about the new 
-leader in the system. It sends a request to each node, informing them of the current leader's 
-details.
+%The \texttt{notify\_nodes\_of\_leader} method notifies the neighboring nodes about the new 
+%leader in the system. It sends a request to each node, informing them of the current leader's 
+%details.
 
 \subsubsection*{Data Retrieval and Search}
 
@@ -524,20 +556,20 @@ The \texttt{search\_ids} method performs a search operation based on a query str
 data retrieval, it distributes the search requests across nodes using multithreading and 
 combines the results.
 
-\subsubsection*{Forwarding Requests}
-
-The \texttt{forward\_request} method forwards a request to a specified node. It takes the node 
-details and request data as input and sends the request to the designated node. It can also 
-forward requests to the leader based on the \texttt{to\_leader} parameter.
+%\subsubsection*{Forwarding Requests}
+%
+%The \texttt{forward\_request} method forwards a request to a specified node. It takes the node 
+%details and request data as input and sends the request to the designated node. It can also 
+%forward requests to the leader based on the \texttt{to\_leader} parameter.
 
 \subsubsection*{Configuration Management}
 
-The \texttt{get\_leader} method retrieves the leader node from the neighbor nodes based on their 
-IDs. It returns the node with the lowest ID as the leader.
+%The \texttt{get\_leader} method retrieves the leader node from the neighbor nodes based on their 
+%IDs. It returns the node with the lowest ID as the leader.
 
 
-The \texttt{update\_config} method updates the local configuration file with the current 
-neighbor node information. It writes the updated configuration to the file.
+%The \texttt{update\_config} method updates the local configuration file with the current 
+%neighbor node information. It writes the updated configuration to the file.
 
 
 The deployment of a distributed bibliographic search engine requires the coordination and 
@@ -675,20 +707,22 @@ possible reasons why we did not see a performance improvement for each technique
         \item The time taken to communicate data between processes (serialization and deserialization).
     \end{itemize}
 
-    \item {\texttt{Thread} Level Parallelization}: Due to Python's GIL BM25F algorithm couldn't 
-    parallelized in thread level. Python's Global Interpreter Lock, or GIL, is a mutex (or a lock) 
-    that allows only one thread to execute at a time in a single process. This is because CPython, 
-    the reference implementation of Python, is not thread-safe. The GIL is used to prevent 
-    multiple native threads from executing Python bytecodes at once, which can cause 
-    inconsistencies and problems with Python objects.
-
-    The GIL makes single-threaded programs fast and efficient, but it can significantly slow 
-    down multi-threaded CPU-bound programs. It is because, despite having multiple threads 
-    within a process, due to the GIL, only one thread can execute at a time, negating the 
-    benefits of multi-core processors. Essentially, the GIL leads to essentially single-threaded 
-    execution, even on multi-threaded Python programs.
+    \item {\texttt{Thread} Level Parallelization}: Python's GIL, or Global Interpreter Lock, 
+    is a mutex that prevents parallelization of the BM25F algorithm at the thread level. The 
+    GIL allows only one thread to execute at a time in a single process to ensure thread 
+    safety. While the GIL ensures fast and efficient execution for single-threaded programs,
+     it significantly hampers the performance of multi-threaded CPU-bound programs. Despite 
+     having multiple threads within a process, the GIL restricts only one thread from 
+     executing at a time, rendering the advantages of multi-core processors ineffective. 
+     Consequently, the GIL essentially results in single-threaded execution, even in multi-
+     threaded Python programs.
 \end{itemize}
 
+We can easily observe that the BM25F algorithm is a CPU intensive task. Since we are not able 
+to run it with multiple threads we won't see any performance improvement. It would be useful 
+to run the algorithm at the process level, but we observe that this is also an expensive task 
+and reduces performance. If we used different CPU architecture and a bigger volume of data 
+we could try the multi-process technique to speedup performance.
 \newpage
 \bibliographystyle{unsrt}
 \bibliography{bib}
