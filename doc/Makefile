@@ -1,4 +1,4 @@
-all: report.pdf
+all: report.pdf presentation.pdf
 
 report.pdf: report.tex
 	pdflatex report
@@ -6,12 +6,14 @@ report.pdf: report.tex
 	pdflatex report
 	pdflatex report
 
-scores:
-	bash scores.sh report.aux ../data/quality-assessment/dare_assessment.csv >scores.tex
+presentation.pdf: presentation.tex
+	pdflatex presentation
+	pdflatex presentation
+	pdflatex presentation
+
 
 clean:
-	rm -f *.aux *.bbl *.blg *.cut *.dvi *.log *.out *.synctex.gz *.fdb_latexmk *.fls *.toc *.nav *.snm *.vrb *.pdf
+	rm -f *.aux *.bbl *.blg *.cut *.dvi *.log *.out *.synctex.gz *.fdb_latexmk *.fls *.toc *.nav *.snm *.vrb *.pdf *.run.xml
 
 crop:
 	for f in figures/*.pdf; do pdfcrop $$f $$f; done
-
