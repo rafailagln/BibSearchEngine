@@ -1,0 +1,270 @@
+\documentclass{beamer}
+\usepackage{hyperref} % Include this package to use URLs
+\usetheme{metropolis}
+\setbeamertemplate{section in toc}[sections numbered]
+\setbeamertemplate{subsection in toc}[subsections numbered]
+\setbeamertemplate{page number in head/foot}{}
+
+
+\begin{document}
+
+\title{Implementation of a Distributed Bibliographic Search Engine}
+\subtitle{\url{http://46.101.232.219:8080/bibengine/}} % Add your URL here
+\author{Galanopoulou Rafaila ,
+\{Kalopisis, 
+ Notaris\}  Ioannis
+ }
+\date{\today}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+\begin{frame}{Table of Contents}
+\tableofcontents[currentsection, hideothersubsections]
+\end{frame}
+
+\section{Idea}
+
+\begin{frame}{Project Overview}
+    We developed a bibliographic search engine:
+    \begin{itemize}
+    \item Utilizes Crossref dataset (157 GB compressed)
+    % \item Covers 134 million publications with full citations
+    \item Distributed system with 8 nodes
+    \item MongoDB database for optimized query performance
+    \item Ranking algorithm based on BM25F
+    \item Indexing mechanism for quick search operations
+    \end{itemize}
+    Integrated machine learning for:
+    \begin{itemize}
+    \item Alternative query suggestions
+    \item Improved user experience and relevance
+    \item Continuous adaptation to user needs
+    \end{itemize}
+    \end{frame}
+    
+\section{Implementation}
+
+\subsection{Ranking Implementation}
+
+\begin{frame}{Ranking Implementation}
+    The ranking process using the BM25F algorithm:
+    \begin{enumerate}
+    \item BM25F class defines the algorithm, taking the inverted index and document count as input.
+    \item bm25f method calculates the BM25F score for documents and a query.
+    \item idf calculation method calculates IDF for each query term.
+    \item tf field calculation method calculates TF for each term and field.
+    \item algorithm parameters method returns field-specific parameters.
+    \item SearchEngine class performs the search operation using BM25F.
+    \item BooleanInformationRetrieval class performs boolean search.
+    \item sort documents method sorts documents based on their scores.
+    \end{enumerate}
+\end{frame}
+
+\subsubsection{Boolean Information Retrieval Algorithm}
+
+    \begin{frame}{Boolean Information Retrieval Algorithm}
+    The Boolean Information Retrieval algorithm:
+    \begin{itemize}
+    \item Initially narrows down the results based on query words.
+    \item Assigns an initial score to documents based on word matches.
+    \item Documents with the highest score proceed to the next stage of the BM25F algorithm.
+    \end{itemize}
+    \end{frame}
+    
+
+
+\subsubsection{Preprocessor Package}
+\begin{frame}{Preprocessor Package}
+    The preprocessor package provides functionality for data cleaning and preparation:
+    
+    \begin{itemize}
+    \item DataCleaner class performs data cleaning operations, including removing HTML tags, converting to lowercase, tokenizing, and removing stopwords and punctuation.
+    \item Functions like \texttt{clean data(data)}, \texttt{html strip(data)}, \texttt{lower string(data)}, \texttt{tokenizer(data)}, and \texttt{punctuation deletion(data)} are available for specific cleaning tasks.
+    \item The DataCleaner class uses the NLTK library and downloads necessary resources during initialization.
+    \item It prepares data for further analysis or indexing by removing HTML tags, converting to lowercase, tokenizing, and removing stopwords and punctuation.
+    \end{itemize}
+
+\end{frame}
+    
+
+\subsection{Indexer Package}
+
+\begin{frame}{Indexer Package}
+    The indexer package provides functionality to:
+    \begin{itemize}
+    \item Metadata class: Handles metadata operations.
+    \item InfoClass class: Stores document information.
+    \item IndexCreator class: Creates and loads the index.
+    \item Metadata methods: Init, add doc length, increase average length, calculate average length, add referenced by, normalize referenced by, set total docs, load, save.
+    \item InfoClass methods: Convert to dictionary representation.
+    \item IndexCreator methods: Init, create/load index, node adder.
+    \item IndexCreator utilizes DataCleaner for data cleaning.
+    \item Interacts with MongoDB using db.connection module.
+    \end{itemize}
+    The indexer package ensures efficient retrieval and analysis of indexed data.
+
+\end{frame}
+
+\subsection{APIRequester Package}
+
+\begin{frame}{APIRequester Package}
+    The APIRequester package provides functionality to:
+    \begin{itemize}
+    \item Send HTTP requests to the API Server.
+    \item APIRequester class: Handles authentication and POST requests.
+    \item Key methods: init, post update config endpoint.
+    \item Requires base URL, username, and password.
+    \item Utilizes http.client, base64, json, and urllib.parse modules.
+    \item Establishes connection and sends HTTP requests.
+    \item Parses JSON responses and handles authentication.
+    \end{itemize}
+    APIRequester simplifies authentication and sending requests.
+\end{frame}
+    
+
+\subsection{API Server}
+\begin{frame}{API Server Package}
+    The API server provides functionality to:
+    \begin{itemize}
+    \item Handle different types of requests.
+    \item FastAPI framework implementation.
+    \item Endpoints for search, alternate queries, fetch data, and update config.
+    \item Supports basic authentication.
+    \item Uses ConfigManager and RequestWrapper.
+    \item Async calls with ThreadPoolExecutor.
+    \item Uvicorn package for running the server.
+    \item RESTful API with authentication.
+    \item Search, fetch data, and configuration update.
+    \end{itemize}
+    The API server enables searching, fetching data, and configuration updates.
+    \end{frame}
+    
+
+\subsection{Distributed Package}
+
+\begin{frame}{Distributed Package Package}
+    The distributed package offers functionality to:
+    \begin{itemize}
+    \item Handle distributed JSON documents.
+    \item Shard Calculation: Determine shard ID based on document ID and number of shards.
+    \item FastJsonLoader Class: Load and access distributed JSON documents.
+    \item MongoDB used for metadata and document IDs.
+    \item Methods for loading, saving, retrieving, inserting, and deleting documents.
+    \item Efficient management of distributed JSON documents.
+    \end{itemize}
+    This package simplifies working with distributed JSON documents.
+    \end{frame}
+    
+\subsection{Implementation of a Distributed Bibliographic Search Engine}
+
+\begin{frame}{Distributed Bibliographic Search Engine}
+    The implementation of a distributed bibliographic search engine includes:
+    \begin{itemize}
+    \item Designed for large volumes of bibliographic data.
+    \item Multiple nodes distribute workload and improve performance.
+    \item DistributedNode class manages operations of a single node.
+    \item Handles requests, document loading, indexing, and search.
+    \item Heartbeat and initialization process for node communication.
+    \item Data retrieval and search based on IDs or query string.
+    \item Configuration management for distributed collaboration.
+    \item Efficient processing and accurate search results.
+    \end{itemize}
+    The distributed search engine efficiently handles bibliographic data.
+    \end{frame}
+    
+
+\section{Suggest Alternative Queries}
+
+\begin{frame}{Suggest Alternative Queries Summary}
+    The implementation of alternative query suggestion includes:
+    \begin{itemize}
+    \item KNN algorithm for predicting synonyms.
+    \item \textbf{Word2Vec for encoding word meanings.}
+    \item Sent2Vec for generating embeddings of sentences.
+    \item BERT for advanced word embeddings.
+    \item T5 model for text-to-text transfer tasks.
+    \item Transformers for contextual understanding of text.
+    \item Limitations:
+    \begin{itemize}
+        \item Resource-intensive and opaque nature of models.
+        \item Biases and limitations in contextual understanding.
+        \item Challenges in training on new tasks.
+        \item Potential risks of exposing sensitive information.
+    \end{itemize}
+    \end{itemize}
+    These techniques enhance alternative query generation.
+    \end{frame}
+    
+
+\section{Deployment}
+
+\begin{frame}{Deployment}
+    For our bibliographic search engine deployment:
+    \begin{itemize}
+    \item Front-end developed with Spring Boot.
+    \item Back-end implemented in Python.
+    \item Automated testing for code quality.
+    \item Continuous integration and deployment pipelines.
+    \item Eight-node distributed database approach.
+    \item Enhanced performance and fault tolerance.
+    \item High volume query handling capability.
+    \item Detailed hardware specifications in Appendix A.
+    \end{itemize}
+    This approach ensures efficient data processing.
+\end{frame}
+    
+\section{Observations}
+
+\begin{frame}{Observations 1/2}
+    \begin{itemize}
+        \item Inverted Index:
+        \begin{itemize}
+        \item Efficient data structure for full-text search indexing.
+        \item Lists documents for each term instead of listing terms for each document.
+        \item Enables fast keyword-based searches by looking up keywords in the index.
+        \item Avoids scanning through all documents in a collection for keyword search.
+        \end{itemize}
+        \item Trie Data Structure:
+        \begin{itemize}
+        \item Used to build the inverted index.
+        \item Dramatically reduces index size.
+        \item Enables the index to fit entirely in memory.
+        \item Improves search speed.
+        \end{itemize}
+        \end{itemize}
+\end{frame}
+
+\begin{frame}{Observations 1/2}
+    \begin{itemize}
+        \item Inverted Index:
+        \begin{itemize}
+        \item Efficient data structure for full-text search indexing.
+        \item Lists documents for each term instead of listing terms for each document.
+        \item Enables fast keyword-based searches by looking up keywords in the index.
+        \item Avoids scanning through all documents in a collection for keyword search.
+        \end{itemize}
+        \item Trie Data Structure:
+        \begin{itemize}
+        \item Used to build the inverted index.
+        \item Dramatically reduces index size.
+        \item Enables the index to fit entirely in memory.
+        \item Improves search speed.
+        \end{itemize}
+        \end{itemize}
+\end{frame}
+
+\begin{frame}{Observations 2/2}
+\begin{itemize}
+    \item BM25F Parallelization:
+    \begin{itemize}
+    \item Attempted parallelization of BM25F algorithm.
+    \item Explored process-level and thread-level parallelization techniques.
+    \item Did not observe performance improvements due to overhead and Global Interpreter Lock (GIL) limitations in Python.
+    \item CPU-intensive nature of the algorithm hindered multi-threading benefits.
+    \item Multi-process techniques could be explored with different CPU architecture and larger data volumes for potential speed improvements.
+    \end{itemize}
+    \end{itemize}
+\end{frame}
+\end{document}
