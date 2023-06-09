@@ -4,6 +4,11 @@
 \usepackage{fancyhdr}
 \usepackage{amsmath}
 \usepackage[nottoc]{tocbibind}
+\usepackage{hyperref} % Include this package to use URLs
+\usepackage{url}
+\hypersetup{%
+    pdfborder = {0 0 0}
+}
 % \usepackage[]{biblatex}
 % \usepackage[nottoc]{tocbibind}
 \fancyhf{} % Clear header/footer
@@ -17,8 +22,11 @@
 \begin{document}
 
 \title{Bibsearch Engine Report}
-\author{Your Name}
+\author{Galanopoulou Rafaila 7115112200033\\
+Kalopisis Ioannis 7115112200011\\
+ Notaris  Ioannis 7115112200038}
 \date{\today}
+
 
 \maketitle
 \newpage
@@ -26,92 +34,22 @@
 
 \newpage
 
+\section*{Resources}
+Code can be found in this repo: \url{https://github.com/rafailagln/BibSearchEngine}
 
-\section{Introduction}
+The actual application will be up and running \underline{for the next two weeks}
+here: \url{http://46.101.232.219:8080/bibengine/}
 
-% Provide an introduction to the bibsearch engine and its purpose.
-
-% \chapter{Directory Structure}
-
-% \subsection{Root Directory}
-
-% \begin{itemize}
-%     \item \texttt{Makefile}: Makefile for building the project.
-%     \item \texttt{\_\_init\_\_.py}: Initialization file.
-%     \item \texttt{api\_requester.py}: Module for making API requests.
-%     \item \texttt{build}: Build directory.
-%     \item \texttt{classes.dot}: Graphviz DOT file for class diagrams.
-%     \item \texttt{classes\_DEEPCHEM.png}: Image file for class diagrams.
-%     \item \texttt{config.ini}: Configuration file in INI format.
-%     \item \texttt{config.json}: Configuration file in JSON format.
-%     \item \texttt{configurations}: Directory for configuration-related modules.
-%     \begin{itemize}
-%         \item \texttt{\_\_init\_\_.py}: Initialization file.
-%         \item \texttt{read\_config.py}: Module for reading the configuration.
-%     \end{itemize}
-%     \item \texttt{db}: Directory for database-related modules.
-%     \begin{itemize}
-%         \item \texttt{\_\_init\_\_.py}: Initialization file.
-%         \item \texttt{connection.py}: Module for database connection.
-%     \end{itemize}
-%     \item \texttt{distributed}: Directory for distributed computing modules.
-%     \begin{itemize}
-%         \item \texttt{Trie.py}: Module for the Trie data structure.
-%         \item \texttt{config\_manager.py}: Module for managing configuration in a distributed environment.
-%         \item \texttt{fast\_json\_loader.py}: Module for fast JSON loading.
-%         \item \texttt{node.py}: Module for representing a distributed computing node.
-%         \item \texttt{node\_data}: Directory for storing node-specific data.
-%         \item \texttt{request\_wrapper.py}: Module for wrapping API requests in a distributed environment.
-%         \item \texttt{test}: Directory for test-related modules.
-%         \item \texttt{utils.py}: Utility module for distributed computing.
-%     \end{itemize}
-%     \item \texttt{docs}: Directory for documentation.
-%     \begin{itemize}
-%         \item \texttt{index.md}: Markdown file for the documentation index.
-%     \end{itemize}
-%     \item \texttt{error\_handling}: Directory for error handling modules.
-%     \begin{itemize}
-%         \item \texttt{\_\init\_\_.py}: Initialization file.
-%         \item \texttt{exceptions.py}: Module for custom exceptions.
-%     \end{itemize}
-%     \item \texttt{fast\_api.py}: FastAPI module for the web application.
-%     \item \texttt{indexer}: Directory for indexing modules.
-%     \begin{itemize}
-%         \item \texttt{\_\init\_\_.py}: Initialization file.
-%         \item \texttt{\_\_pycache\_\_}: Directory for cached Python files.
-%         \item \texttt{data\_reader.py}: Module for reading data for indexing.
-%         \item \texttt{index\_creator.py}: Module for creating indexes.
-%         \item \texttt{index\_metadata.py}: Module for indexing metadata.
-%         \item \texttt{index\_valueInfo.py}: Module for indexing value information.
-%     \end{itemize}
-%     \item \texttt{main.py}: Main entry point for the bibsearch engine.
-%     \item \texttt{make.bat}: Batch file for building the project (Windows).
-%     \item \texttt{mkdocs.yml}: Configuration file for MkDocs documentation.
-%     \item \texttt{preprocessor}: Directory for data preprocessing modules.
-%     \begin{itemize}
-%         \item \texttt{\_\_init\_\_.py}: Initialization file.
-%         \item \texttt{\_\_pycache\_\_}: Directory for cached Python files.
-%         \item \texttt{data\_cleaner.py}: Module for cleaning data before indexing.
-%     \end{itemize}
-%     \item \texttt{pyproject.toml}: Project metadata file.
-%     \item \texttt{ranker}: Directory for ranking modules.
-%     \begin{itemize}
-%         \item \texttt{\_\_init\_\_.py}: Initialization file.
-%         \item \texttt{ranking\_algorithms.py}: Module for ranking algorithms.
-%         \item \texttt{relevancy.py}: Module for calculating relevancy scores.
-%         \item \texttt{search.py}: Module for searching and ranking results.
-%     \end{itemize}
-% \end{itemize}
 \section{Idea}
 
 We have embarked on the ambitious task of developing a bibliographic search engine that 
-harnesses the vast amount of data available in the Crossref dataset. With a staggering size of 
-% TODO add exact size
+harnesses the vast amount of data available in the Crossref dataset. With a staggering size 
+of 1.7 million documents out of 
 157 GB compressed (1 TB uncompressed), this dataset encompasses publication metadata from 
-approximately 134 million publications, including full citation data for 60 million of them. Our 
-objective was to create a tool that enables users to efficiently explore this extensive 
-collection of scholarly resources, and to build a system that can be scaled to handle even larger
-datasets in the future.
+approximately 134 million publications, including full citation data for 60 million of them. 
+Our objective was to create a tool that enables users to efficiently explore this extensive 
+collection of scholarly resources, and to build a system that can be scaled to handle even 
+larger datasets in the future.
 
 To handle the scale and complexity of this dataset, we designed our search engine as a 
 distributed system, leveraging the power of eight nodes. One node serves as the front-end, 
@@ -479,12 +417,12 @@ documents across multiple files.
 
 \subsection{Implementation of a Distributed Bibliographic Search Engine}
 
-In this article, we will explore the deployment of a bibliographic search engine that has been 
-implemented in a distributed manner. The search engine is designed to handle large volumes of 
-bibliographic data and provide efficient search capabilities. The system consists of multiple 
-nodes that work together to distribute the workload and improve performance. Here, we will 
-discuss the implementation details of the \texttt{DistributedNode} class, which represents an 
-individual node in the distributed system.
+In this section, we will explore the deployment of a bibliographic search engine that has 
+been implemented in a distributed manner. The search engine is designed to handle large 
+volumes of bibliographic data and provide efficient search capabilities. The system consists 
+of multiple nodes that work together to distribute the workload and improve performance. Here, 
+we will discuss the implementation details of the \texttt{DistributedNode} class, which 
+represents an individual node in the distributed system.
 
 \subsubsection{DistributedNode Class}
 \label{sec:distributed}
@@ -536,16 +474,6 @@ verifies their status. If the current node is the leader and it is the first boo
 separate thread to continuously check the heartbeats. On subsequent boots, the method retrieves 
 the configuration from other nodes and starts the document loading and index creation process.
 
-%\subsubsection*{Interacting with Neighboring Nodes}
-
-%The \texttt{update\_alive\_nodes} method updates the list of alive nodes by sending heartbeat 
-%requests to each node. It iterates through the neighboring nodes and sends heartbeat requests to 
-%determine their status.
-
-%The \texttt{notify\_nodes\_of\_leader} method notifies the neighboring nodes about the new 
-%leader in the system. It sends a request to each node, informing them of the current leader's 
-%details.
-
 \subsubsection*{Data Retrieval and Search}
 
 The \texttt{handle\_get\_data} method handles the retrieval of data based on IDs. It splits the 
@@ -556,20 +484,8 @@ The \texttt{search\_ids} method performs a search operation based on a query str
 data retrieval, it distributes the search requests across nodes using multithreading and 
 combines the results.
 
-%\subsubsection*{Forwarding Requests}
-%
-%The \texttt{forward\_request} method forwards a request to a specified node. It takes the node 
-%details and request data as input and sends the request to the designated node. It can also 
-%forward requests to the leader based on the \texttt{to\_leader} parameter.
 
 \subsubsection*{Configuration Management}
-
-%The \texttt{get\_leader} method retrieves the leader node from the neighbor nodes based on their 
-%IDs. It returns the node with the lowest ID as the leader.
-
-
-%The \texttt{update\_config} method updates the local configuration file with the current 
-%neighbor node information. It writes the updated configuration to the file.
 
 
 The deployment of a distributed bibliographic search engine requires the coordination and 
@@ -580,6 +496,37 @@ search capabilities. By leveraging the power of a distributed architecture, the 
 can efficiently process large volumes of bibliographic data and provide accurate search results.
 
 \section{Suggest Alternative Queries}
+
+The inclusion of this task within our project aimed to delve into the myriad possibilities 
+for generating alternative text, given its widespread utilization in real-world applications. 
+After conducting an extensive literature review on the subject, we proceeded to experiment 
+with various techniques. Enclosed herein are general insights pertaining to the diverse 
+methodologies we employed.
+
+\subsection{KNN}
+
+The K-Nearest Neighbors (KNN)~\cite{ZQXT20} algorithm is a simple, easy-to-implement 
+supervised machine learning algorithm that can be used to solve both classification and 
+regression problems. In the context of Natural Language Processing (NLP), you might use it to 
+predict synonyms based on word vectorization.
+
+To predict synonyms using K-Nearest Neighbors (KNN), we first convert words into vectors 
+using an algorithm like Word2Vec, GloVe, or FastText, which arrange semantically similar 
+words close together in a high-dimensional space. We then train a KNN model on these vectors, 
+such that each word (represented by a vector) has 'neighbors' based on distance in this 
+vector space. When predicting synonyms for a given word, we input the vector of that word 
+into the KNN model and find the 'K' nearest vectors (words). The words associated with these 
+vectors are then considered the predicted synonyms for the given word.
+
+Bear in mind that this is a simplified overview and actual results can vary significantly 
+based on the choice of vectorization method~\cite{ZQXT20}, the value of 'K', and the specific 
+dataset used.
+It's also worth noting that KNN might not be the most suitable or efficient model for this 
+task, especially with large vocabularies, as it doesn't scale well with the size of the 
+dataset. More advanced methods, such as using neural networks, have shown better performance 
+in tasks involving semantics.
+
+\subsection{Word2Vec}
 In 2012, Thomas Mikolov, an intern at Microsoft, found a way to encode the meaning On words 
 in a modest number of vector dimensions.CMikolor trained a neural networks to predict word 
 occurrences near each target word. In 2013, once at Google, Mikolov and his teammates 
@@ -594,10 +541,13 @@ places as well as communities. Word2vec can learn that and much more, all on its
 need is a corpus large enough to mention Marie Curie and Timbers and Portland near other 
 words associated with science or soccer or cities.
 
-% This unsupervised nature of Word2vec is what makes it so powerful. The world is full of 
-% unlabeled, uncategorized, unstructured natural language text.
+\paragraph{Word vectors} are numerical vector representations of word semantics, or meaning, including literal and implied meaning. So word vectors can capture the connotation of words, like “peopleness,” “animalness,” “placeness,” “thingness,” and even “conceptness.” And they combine all that into a dense vector (no zeros) of floating point values. This dense vector enables queries and logical reasoning
 
-% Word2vec was first presented publicly in 2013 at the ACL conference.
+All words in your corpus will be represented by numerical vectors, similar to the word-topic vectors discussed in chapter 4. Only this time the topics mean something more specific, more precise. In LSA, words only had to occur in the same document to have their meaning “rub off” on each other and get incorporated into their word-topic vectors. For Word2vec word vectors, the words must occur near each other—typically fewer than five words apart and within the same sentence. And Word2vec word vector topic weights can be added and subtracted to create new word vectors that mean something!
+
+Word2vec allows you to transform your natural language vectors of token occurrence counts and frequencies into the vector space of much lower-dimensional Word2vec vectors. In this lower-dimensional space, you can do your math and then convert back to a natural language space. You can imagine how useful this capability is to a chatbot, search engine, question answering system, or information extraction algorithm.
+
+\subsubsection*{How to compute word2vec representations}
 
 Word2Vec uses two main algorithms to create these word embeddings: Continuous Bag of Words (CBOW) and Skip-gram.
 
@@ -621,16 +571,34 @@ to turn scores into probabilities, which are used to predict words.
 Negative sampling is a simplification used to make the computation 
 faster by updating only a small percentage of the model's weights.
 
-\paragraph{Sent2Vec} This is an extension of the Word2Vec model to 
+The softmax function is often used as the activation function in the output layer of neural 
+networks when the network’s goal is to learn classification problems. The softmax will squash 
+the output results between 0 and 1, and the sum of all outputs will always add up to 1. That 
+way, the results of an output layer with a softmax function can be considered as 
+probabilities.
+
+For each of the K output nodes, the softmax output value can be calculated using the normalized exponential function:
+
+\[
+\text{{softmax}}(z_i) = \frac{{e^{z_i}}}{{\sum_{j=1}^{K} e^{z_j}}}
+\]
+where \( z_i \) represents the input value to the \( i \)th output node, \( e \) is the base of the natural logarithm (approximately 2.71828), and \( \sum_{j=1}^{K} e^{z_j} \) denotes the sum of the exponential values of all input nodes.
+
+The softmax function is often used as the activation function in the output layer of neural networks when the network’s goal is to learn classification problems. The softmax will squash the output results between 0 and 1, and the sum of all outputs will always add up to 1. That way, the results of an output layer with a softmax function can be considered as probabilities.
+
+
+\subsection{Other approaches}
+
+\subsubsection{Sent2Vec} This is an extension of the Word2Vec model to 
 generate embeddings for entire sentences or short texts. It considers 
 the order of the words in the text, which can provide additional 
 context and meaning~\cite{MZ20}. Sent2Vec provides a simple and efficient way to 
 represent sentences in vector space which can be beneficial for tasks 
 like text classification, clustering, and similarity assessment.
 
-\paragraph{BERT (Bidirectional Encoder Representations from 
-Transformers)} BERT~\cite{DCLT19} is a more advanced model for 
-generating word 
+\subsubsection{BERT (Bidirectional Encoder Representations from 
+Transformers)} 
+BERT~\cite{DCLT19} is a more advanced model for generating word 
 embeddings. Unlike Word2Vec, which only uses local context to 
 understand a word, BERT uses both the left and the right context, 
 which means it considers the entire sentence. BERT is pre-trained on 
@@ -638,6 +606,37 @@ a large corpus of text and then fine-tuned for specific tasks, such
 as question answering or sentiment analysis. BERT's bidirectional 
 approach allows it to understand the context and the semantic meaning 
 of a word better, leading to more accurate results in many NLP tasks.
+
+\subsubsection{T5 (Text-to-Text Transfer Transformer)}
+T5 is a model proposed by Google in 2019, designed to 
+improve various language tasks by treating every task as a "text-to-text" problem. That 
+means, it takes text as input and returns text as output. T5 is pretrained on a large corpus 
+of text from the internet and can be fine-tuned on specific tasks such as translation, 
+summarization, sentiment analysis, and more.
+
+\subsubsection{Transformers}
+Transformers are a type of model architecture introduced in a paper called 
+"Attention is All You Need"~\cite{ASNG17}. The key innovation is the self-attention mechanism 
+that allows the model to weigh the importance of words in an input sequence when generating 
+an output sequence. This makes them very effective for many NLP tasks, especially those 
+involving understanding the context of words in sentences.
+
+\subsubsection*{Limitations}
+
+While these models have significantly advanced the field of NLP, they do come with a few limitations:
+\begin{itemize}
+    \item Resource-Intensive: These models are typically large and require substantial computational resources to train. This makes them inaccessible to individuals or organizations with limited resources.
+
+    \item Opaque: Like many deep learning models, these models are often seen as "black boxes" because it can be difficult to understand why they make specific decisions or predictions.
+
+    \item Biases: These models can learn and perpetuate the biases in the data they were trained on. This includes gender, racial, or ideological biases present in the text.
+
+    \item Contextual understanding: While these models are exceptional at encoding syntactic relationships within text, they can struggle with tasks that require a higher level of understanding, such as reasoning or nuanced comprehension of the text.
+
+    \item Training on New Tasks: They often require large amounts of data to be fine-tuned for new tasks. However, obtaining these large annotated datasets can be challenging.
+
+    \item Sensitive Information: They can potentially generate or expose sensitive information, as they are trained on large-scale internet text data. They might output inappropriate content or reveal information they were trained on.
+\end{itemize}
 
 \section{Deployment}
 For the deployment of our bibliographic search engine, the following approach has been followed.
@@ -723,6 +722,31 @@ to run it with multiple threads we won't see any performance improvement. It wou
 to run the algorithm at the process level, but we observe that this is also an expensive task 
 and reduces performance. If we used different CPU architecture and a bigger volume of data 
 we could try the multi-process technique to speedup performance.
+
+\subsection{Alternative query suggestion}
+
+We selected the Word2Vec model, using phrases and entire sentences as the corpus, owing to our 
+limited resources~. This approach facilitates the generation of alternative sentences by 
+randomly selecting similar words. However, we acknowledge the potential for improvements in 
+this method. One proposal involves opting for the "best" similar words instead of a random 
+selection, where "best" is defined by the highest cosine similarity metric provided by 
+Word2Vec's \texttt{most\_similar} function. However, this approach has a potential downside of 
+generating identical sentences when more than one sentence is requested due to the lack of 
+variation. \footnote{The whole process of trying different models can be found in the 
+notebook \url{https://github.com/rafailagln/BibSearchEngine/blob/main/src/back/model/
+model_train.ipynb}}
+
+
+
+To tackle this issue, we could introduce a degree of randomness via a weighted choice method. 
+This would increase the likelihood of picking the most similar words while still providing 
+some variation in the results. However, this approach is primarily based on word-level 
+similarity and may not always result in meaningful or grammatically correct sentences. If the 
+'best' is intended to indicate the preservation of the original meaning, fluency, or 
+grammaticality of sentences, more complex approaches might be required. These could 
+potentially involve other natural language processing techniques or resources to ensure the 
+coherency and semantic alignment of the generated alternative sentences.
+
 \newpage
 \bibliographystyle{unsrt}
 \bibliography{bib}
